@@ -13,6 +13,10 @@ import "./App.css";
 // Import UI Components
 import { PageLoader } from "./components/ui/Loader";
 
+// Import Auth Guards
+import { AuthGuard } from "./components/auth/AuthGuard";
+import { OnboardingGuard } from "./components/auth/OnboardingGuard";
+
 // Import Layouts
 import PublicLayout from "./components/layouts/PublicLayout";
 import AgencyLayout from "./components/layouts/AgencyLayout";
@@ -72,7 +76,13 @@ function App() {
       },
       {
         path: "/agency",
-        element: <AgencyLayout />,
+        element: (
+          <AuthGuard>
+            <OnboardingGuard requireOnboarded={true}>
+              <AgencyLayout />
+            </OnboardingGuard>
+          </AuthGuard>
+        ),
         errorElement: <ErrorPage />,
         children: mapRoutes(agencyRoutes, "agency"),
       },
@@ -84,7 +94,13 @@ function App() {
       },
       {
         path: "/onboarding",
-        element: <OnboardingLayout />,
+        element: (
+          <AuthGuard>
+            <OnboardingGuard requireOnboarded={false}>
+              <OnboardingLayout />
+            </OnboardingGuard>
+          </AuthGuard>
+        ),
         errorElement: <ErrorPage />,
         children: mapRoutes(onboardingRoutes, "onboarding"),
       },
