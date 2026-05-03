@@ -29,6 +29,8 @@ interface User {
   last_name?: string;
   image?: string;
   is_onboarded: boolean;
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "EXPIRED";
+  is_frozen: boolean;
   role?: {
     id: string;
     name: string;

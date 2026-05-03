@@ -1,10 +1,270 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useMemo } from "react";
+import { Card, Button, Badge, Select, Spinner } from "flowbite-react";
+import {
+  HiOutlineCurrencyDollar,
+  HiOutlineTrendingUp,
+  HiOutlineReceiptTax,
+  HiOutlineCube,
+  HiOutlineUsers,
+  HiOutlineScale,
+  HiPlus,
+} from "react-icons/hi";
+import { useAuthStore } from "../../store/useAuthStore";
+import { getApiUrl, CONFIG } from "../../config";
+import { NumberFormatter } from "../../utils/formatters";
 
 const AgencyHome = () => {
+  const { user, token } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [filter, setFilter] = useState("today");
+
+  const dateRange = useMemo(() => {
+    const now = new Date();
+    let start = new Date();
+    const end = new Date();
+
+    if (filter === "today") {
+      start.setHours(0, 0, 0, 0);
+    } else if (filter === "this_week") {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      start = new Date(now.setDate(diff));
+      start.setHours(0, 0, 0, 0);
+    } else if (filter === "this_month") {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (filter === "this_year") {
+      start = new Date(now.getFullYear(), 0, 1);
+    }
+
+    return {
+      startDate: start.toISOString().split("T")[0],
+      endDate: end.toISOString().split("T")[0],
+    };
+  }, [filter]);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      if (!user?.branch?.id || !token) return;
+
+      setLoading(true);
+      try {
+        const url = getApiUrl(`${CONFIG.API.CORE.BASE}analytics/summary/`);
+        const params = new URLSearchParams({
+          branchId: user.branch.id,
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        });
+
+        const res = await fetch(`${url}?${params}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setSummaryData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, [user?.branch?.id, token, dateRange]);
+
+  const userName = user
+    ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+    : "Agent";
+
+  // Shared card classes for continuity
+  const cardClasses =
+    "bg-white dark:bg-prussian-blue-900 border-gray-100 dark:border-white/5 shadow-none";
+  const actionButtonClasses =
+    "border border-2 p-2 w-3xl bg-white dark:bg-prussian-blue-900 border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
+
   return (
     <div>
-      <h1 className="text-2xl font-bold">Agency Dashboard</h1>
-      <p>Welcome to the protected agency area.</p>
+      {/* head section */}
+      <div>
+        <div className="flex items-center justify-between p-4">
+          <span className="text-gray-900 dark:text-white uppercase">
+            {userName}
+          </span>
+          <button className="flex items-center justify-center text-white bg-brand-primary hover:bg-space-indigo-600 rounded-full px-4 py-1.5 text-sm font-medium">
+            <HiPlus className="mr-1 h-4 w-4" />
+            new sale
+          </button>
+        </div>
+        <div className="flex items-center justify-start gap-4 p-4 overflow-x-auto">
+          <button className={actionButtonClasses}>Create Receipt</button>
+          <button className={actionButtonClasses}>Create Invoice</button>
+          <button className={actionButtonClasses}>
+            Create Installment Sale
+          </button>
+          <button className={actionButtonClasses}>Create Quatation</button>
+        </div>
+      </div>
+
+      {/* summary section */}
+      <div className="p-4">
+        <select
+          name="filter"
+          id="filter"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="bg-white dark:bg-prussian-blue-900 border-2 border-gray-100 dark:border-white/5 p-2 text-gray-900 dark:text-white rounded-lg cursor-pointer">
+          <option value="today">Today</option>
+          <option value="this_week">This Week</option>
+          <option value="this_month">This Month</option>
+          <option value="this_year">This Year</option>
+        </select>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Spinner size="xl" color="info" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {/* Total Sales */}
+            <Card className={cardClasses}>
+              <div>
+                <span className="flex items-center gap-2">
+                  <HiOutlineCurrencyDollar className="h-4 w-4" />
+                  <span className="text-sm">Total Sales</span>
+                </span>
+              </div>
+              <div className="text-xl font-bold uppercase">
+                {NumberFormatter.formatCurrency(summaryData?.totalSales)}
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">
+                  From {summaryData?.paidSalesCount || 0} transaction (excluding
+                  quotes)
+                </span>
+              </div>
+            </Card>
+
+            {/* Total Gross Profit */}
+            <Card className={cardClasses}>
+              <div>
+                <span className="flex items-center gap-2">
+                  <HiOutlineTrendingUp className="h-4 w-4" />
+                  <span className="text-sm">Total Gross profit</span>
+                  <Badge color="success">
+                    {summaryData?.totalSales > 0
+                      ? `${(
+                          (summaryData.totalProfit / summaryData.totalSales) *
+                          100
+                        ).toFixed(1)}%`
+                      : "0.0%"}
+                  </Badge>
+                </span>
+              </div>
+              <div className="text-xl font-bold uppercase">
+                {NumberFormatter.formatCurrency(summaryData?.totalProfit)}
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">
+                  Gross profit from non-quote sales
+                </span>
+              </div>
+            </Card>
+
+            {/* Total Expenses */}
+            <Card className={cardClasses}>
+              <div>
+                <span className="flex items-center gap-2">
+                  <HiOutlineReceiptTax className="h-4 w-4" />
+                  <span className="text-sm">Total Expenses</span>
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold">PAID</span>
+                <span className="text-lg font-bold uppercase">
+                  {NumberFormatter.formatCurrency(summaryData?.totalExpenses)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold">DUE</span>
+                <span className="text-lg font-bold uppercase">
+                  {NumberFormatter.formatCurrency(0)}
+                </span>
+              </div>
+            </Card>
+
+            {/* Inventory Value */}
+            <Card className={cardClasses}>
+              <div>
+                <span className="flex items-center gap-2">
+                  <HiOutlineCube className="h-4 w-4" />
+                  <span className="text-sm">Inventory value</span>
+                </span>
+              </div>
+              <div className="text-xl font-bold uppercase">
+                {NumberFormatter.formatCurrency(
+                  summaryData?.inventoryStats?.totalStockValue,
+                )}
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">
+                  Total value of current inventory
+                </span>
+              </div>
+            </Card>
+
+            {/* Debtors & Creditors */}
+            <Card className={cardClasses}>
+              <div>
+                <span className="flex items-center gap-2">
+                  <HiOutlineScale className="h-4 w-4" />
+                  <span className="text-sm">Debtors & Creditors</span>
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold">DEBTORS</span>
+                <span className="text-lg font-bold uppercase">
+                  {NumberFormatter.formatCurrency(0)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold">CREDITORS</span>
+                <span className="text-lg font-bold uppercase">
+                  {NumberFormatter.formatCurrency(0)}
+                </span>
+              </div>
+            </Card>
+
+            {/* Customer Overview */}
+            <Card className={cardClasses}>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <HiOutlineUsers className="h-4 w-4" />
+                  <span className="text-sm">Customer Overview</span>
+                </span>
+                <select
+                  name=""
+                  id=""
+                  className="bg-transparent border-none text-xs focus:ring-0 cursor-pointer">
+                  <option value="">Total</option>
+                  <option value="">New</option>
+                  <option value="">Top 5</option>
+                </select>
+              </div>
+              <div className="text-xl font-bold">
+                {summaryData?.totalCustomers || 0}
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">
+                  Registered customer
+                </span>
+              </div>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { AgencyNavbar } from "../ui/AgencyNavbar";
 import { AppSidebar } from "../ui/Sidebar";
+import SpeedDial from "../ui/SpeedDial";
 
 const AgencyLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -13,6 +14,7 @@ const AgencyLayout = () => {
         <AgencyNavbar onToggleSidebar={() => setIsCollapsed(!isCollapsed)} />
         <main className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           <Outlet />
+          <SpeedDial />
         </main>
       </div>
     </div>

@@ -33,8 +33,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
       <div className="flex items-center">
         <button
           onClick={onToggleSidebar}
-          className="mr-3 cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-        >
+          className="mr-3 cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
           <HiMenuAlt2 className="h-6 w-6" />
         </button>
       </div>
@@ -47,7 +46,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
             className="mr-3 h-6 sm:h-9 rounded-lg"
             alt="Agency Logo"
           />
-          <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+          <span className="self-center hidden md:inline truncate whitespace-nowrap text-xl font-semibold dark:text-white">
             {user?.agency?.name || "Gonza Systems"}
           </span>
         </NavbarBrand>
@@ -58,8 +57,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
         <button
           onClick={toggleMode}
           className="rounded-lg p-2.5 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-          aria-label="Toggle dark mode"
-        >
+          aria-label="Toggle dark mode">
           {mode === "dark" ? (
             <HiSun className="h-5 w-5" />
           ) : (
@@ -70,13 +68,12 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
           arrowIcon={false}
           inline
           label={
-            <UserAvatar 
-              name={user?.first_name || user?.email} 
+            <UserAvatar
+              name={user?.first_name || user?.email}
               src={user?.image}
               size={32}
             />
-          }
-        >
+          }>
           <DropdownHeader>
             <div className="flex flex-col gap-1">
               <span className="block text-sm font-bold text-[#f05a2b] dark:text-[#9b87f5]">

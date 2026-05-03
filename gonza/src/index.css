@@ -7,16 +7,16 @@
 
 :root {
   /* Brand Colors - Light Mode (Mapped to Palette) */
-  --primary: #252861;      /* Midnight Indigo */
-  --secondary: #f05a2b;    /* Vibrant Orange */
-  --accent: #9b87f5;       /* Vivid Purple */
-  --bg-soft: #F1F0FB;      /* Lavender White */
+  --primary: #252861; /* Space Indigo */
+  --secondary: #f05a2b; /* Tiger Flame */
+  --accent: #9b87f5; /* Soft Periwinkle */
+  --bg-soft: #f1f0fb; /* Lavender Mist */
 
-  --text: #374151;
-  --text-h: #111827;
+  --text: #374151; /*charcoal-blue*/
+  --text-h: #111827; /*ink-black*/
   --bg: #ffffff;
-  --border: #e5e7eb;
-  
+  --border: #e5e7eb; /*platinum*/
+
   --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px,
     rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
@@ -24,6 +24,108 @@
   --scrollbar-bg: #f1f1f1;
   --scrollbar-thumb: #ccc;
   --scrollbar-thumb-hover: #bbb;
+
+  /* RAW PALETTE - Base Variables */
+  /* Space Indigo Scale */
+  --space-indigo-50: #ededf8;
+  --space-indigo-100: #dadbf1;
+  --space-indigo-200: #b5b7e3;
+  --space-indigo-300: #9094d5;
+  --space-indigo-400: #6b70c7;
+  --space-indigo-500: #464cb9;
+  --space-indigo-600: #383d94;
+  --space-indigo-700: #2a2e6f;
+  --space-indigo-800: #1c1e4a;
+  --space-indigo-900: #0e0f25;
+  --space-indigo-950: #0a0b1a;
+
+  /* Tiger Flame Scale */
+  --tiger-flame-50: #fdece7;
+  --tiger-flame-100: #fcdacf;
+  --tiger-flame-200: #f8b4a0;
+  --tiger-flame-300: #f58f70;
+  --tiger-flame-400: #f26a40;
+  --tiger-flame-500: #ee4411;
+  --tiger-flame-600: #bf370d;
+  --tiger-flame-700: #8f290a;
+  --tiger-flame-800: #5f1b07;
+  --tiger-flame-900: #300e03;
+  --tiger-flame-950: #210a02;
+
+  /* Soft Periwinkle Scale */
+  --soft-periwinkle-50: #ebe7fd;
+  --soft-periwinkle-100: #d8d0fb;
+  --soft-periwinkle-200: #b1a1f7;
+  --soft-periwinkle-300: #8971f4;
+  --soft-periwinkle-400: #6242f0;
+  --soft-periwinkle-500: #3b13ec;
+  --soft-periwinkle-600: #2f0fbd;
+  --soft-periwinkle-700: #230b8e;
+  --soft-periwinkle-800: #18085e;
+  --soft-periwinkle-900: #0c042f;
+  --soft-periwinkle-950: #080321;
+
+  /* Lavender Mist Scale */
+  --lavender-mist-50: #ecebfa;
+  --lavender-mist-100: #d9d7f4;
+  --lavender-mist-200: #b3aeea;
+  --lavender-mist-300: #8e86df;
+  --lavender-mist-400: #685ed4;
+  --lavender-mist-500: #4236c9;
+  --lavender-mist-600: #352ba1;
+  --lavender-mist-700: #282079;
+  --lavender-mist-800: #1a1551;
+  --lavender-mist-900: #0d0b28;
+  --lavender-mist-950: #09071c;
+
+  /* Prussian Blue Scale */
+  --prussian-blue-50: #ebeff9;
+  --prussian-blue-100: #d7e0f4;
+  --prussian-blue-200: #b0c1e8;
+  --prussian-blue-300: #88a2dd;
+  --prussian-blue-400: #6183d1;
+  --prussian-blue-500: #3963c6;
+  --prussian-blue-600: #2e509e;
+  --prussian-blue-700: #223c77;
+  --prussian-blue-800: #17284f;
+  --prussian-blue-900: #0b1428;
+  --prussian-blue-950: #080e1c;
+
+  --color-ink-black-50: #edf0f7;
+  --color-ink-black-100: #dce2ef;
+  --color-ink-black-200: #b8c5e0;
+  --color-ink-black-300: #95a8d0;
+  --color-ink-black-400: #718ac1;
+  --color-ink-black-500: #4e6db1;
+  --color-ink-black-600: #3e578e;
+  --color-ink-black-700: #2f426a;
+  --color-ink-black-800: #1f2c47;
+  --color-ink-black-900: #101623;
+  --color-ink-black-950: #0b0f19;
+
+  --color-platinum-50: #f1f2f4;
+  --color-platinum-100: #e2e4e9;
+  --color-platinum-200: #c5cad3;
+  --color-platinum-300: #a9afbc;
+  --color-platinum-400: #8c95a6;
+  --color-platinum-500: #6f7a90;
+  --color-platinum-600: #596273;
+  --color-platinum-700: #434956;
+  --color-platinum-800: #2c313a;
+  --color-platinum-900: #16181d;
+  --color-platinum-950: #101114;
+
+  --color-charcoal-blue-50: #f0f2f5;
+  --color-charcoal-blue-100: #e1e4ea;
+  --color-charcoal-blue-200: #c2cad6;
+  --color-charcoal-blue-300: #a4afc1;
+  --color-charcoal-blue-400: #8694ac;
+  --color-charcoal-blue-500: #677a98;
+  --color-charcoal-blue-600: #536179;
+  --color-charcoal-blue-700: #3e495b;
+  --color-charcoal-blue-800: #29313d;
+  --color-charcoal-blue-900: #15181e;
+  --color-charcoal-blue-950: #0e1115;
 
   --sans: system-ui, "Segoe UI", Roboto, sans-serif;
   --heading: system-ui, "Segoe UI", Roboto, sans-serif;
@@ -47,23 +149,23 @@
 .dark :root,
 .dark {
   /* Brand Colors - Dark Mode Adjustments (Mapped to Palette) */
-  --primary: #dadbf1;      /* space-indigo-100 */
-  --secondary: #f05a2b;    /* tiger-flame (brand core) */
-  --accent: #9b87f5;       /* soft-periwinkle (brand core) */
-  --bg-soft: #1c1e4a;      /* space-indigo-800 */
+  --primary: var(--space-indigo-100);
+  --secondary: var(--tiger-flame-500);
+  --accent: var(--soft-periwinkle-200);
+  --bg-soft: var(--space-indigo-800);
 
   --text: #d1d5db;
   --text-h: #f9fafb;
-  --bg: #0B1326;           /* prussian-blue-900 (custom brand) */
-  --border: #1c1e4a;       /* space-indigo-800 */
-  
+  --bg: var(--prussian-blue-900);
+  --border: var(--space-indigo-800);
+
   --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
     rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
   /* Scrollbar Variables - Dark */
-  --scrollbar-bg: #0b1428;
-  --scrollbar-thumb: #1c1e4a;
-  --scrollbar-thumb-hover: #2a2e6f;
+  --scrollbar-bg: var(--prussian-blue-900);
+  --scrollbar-thumb: var(--space-indigo-800);
+  --scrollbar-thumb-hover: var(--space-indigo-700);
 }
 
 /* Custom Scrollbar Utility */
@@ -93,42 +195,113 @@
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
 }
 
-/* Additional utility for brand colors in Tailwind */
+/* TAILWIND THEME MAPPING */
 @theme {
+  /* Brand Semantic Mappings */
   --color-brand-primary: var(--primary);
   --color-brand-secondary: var(--secondary);
   --color-brand-accent: var(--accent);
   --color-brand-soft: var(--bg-soft);
-  
+
+  /* Map the palette scale to Tailwind utility classes */
   /* Space Indigo Scale */
-  --color-space-indigo-50: #ededf8;
-  --color-space-indigo-100: #dadbf1;
-  --color-space-indigo-200: #b5b7e3;
-  --color-space-indigo-300: #9094d5;
-  --color-space-indigo-400: #6b70c7;
-  --color-space-indigo-500: #464cb9;
-  --color-space-indigo-600: #383d94;
-  --color-space-indigo-700: #2a2e6f;
-  --color-space-indigo-800: #1c1e4a;
-  --color-space-indigo-900: #0e0f25;
-  
+  --color-space-indigo-50: var(--space-indigo-50);
+  --color-space-indigo-100: var(--space-indigo-100);
+  --color-space-indigo-200: var(--space-indigo-200);
+  --color-space-indigo-300: var(--space-indigo-300);
+  --color-space-indigo-400: var(--space-indigo-400);
+  --color-space-indigo-500: var(--space-indigo-500);
+  --color-space-indigo-600: var(--space-indigo-600);
+  --color-space-indigo-700: var(--space-indigo-700);
+  --color-space-indigo-800: var(--space-indigo-800);
+  --color-space-indigo-900: var(--space-indigo-900);
+  --color-space-indigo-950: var(--space-indigo-950);
+
   /* Tiger Flame Scale */
-  --color-tiger-flame-50: #fdece7;
-  --color-tiger-flame-100: #fcdacf;
-  --color-tiger-flame-200: #f8b4a0;
-  --color-tiger-flame-300: #f58f70;
-  --color-tiger-flame-400: #f26a40;
-  --color-tiger-flame-500: #ee4411;
-  --color-tiger-flame-600: #bf370d;
-  
+  --color-tiger-flame-50: var(--tiger-flame-50);
+  --color-tiger-flame-100: var(--tiger-flame-100);
+  --color-tiger-flame-200: var(--tiger-flame-200);
+  --color-tiger-flame-300: var(--tiger-flame-300);
+  --color-tiger-flame-400: var(--tiger-flame-400);
+  --color-tiger-flame-500: var(--tiger-flame-500);
+  --color-tiger-flame-600: var(--tiger-flame-600);
+  --color-tiger-flame-700: var(--tiger-flame-700);
+  --color-tiger-flame-800: var(--tiger-flame-800);
+  --color-tiger-flame-900: var(--tiger-flame-900);
+  --color-tiger-flame-950: var(--tiger-flame-950);
+
   /* Soft Periwinkle Scale */
-  --color-soft-periwinkle-300: #8971f4;
-  --color-soft-periwinkle-400: #6242f0;
-  --color-soft-periwinkle-500: #3b13ec;
-  
+  --color-soft-periwinkle-50: var(--soft-periwinkle-50);
+  --color-soft-periwinkle-100: var(--soft-periwinkle-100);
+  --color-soft-periwinkle-200: var(--soft-periwinkle-200);
+  --color-soft-periwinkle-300: var(--soft-periwinkle-300);
+  --color-soft-periwinkle-400: var(--soft-periwinkle-400);
+  --color-soft-periwinkle-500: var(--soft-periwinkle-500);
+  --color-soft-periwinkle-600: var(--soft-periwinkle-600);
+  --color-soft-periwinkle-700: var(--soft-periwinkle-700);
+  --color-soft-periwinkle-800: var(--soft-periwinkle-800);
+  --color-soft-periwinkle-900: var(--soft-periwinkle-900);
+  --color-soft-periwinkle-950: var(--soft-periwinkle-950);
+
   /* Lavender Mist Scale */
-  --color-lavender-mist-50: #ecebfa;
-  
+  --color-lavender-mist-50: var(--lavender-mist-50);
+  --color-lavender-mist-100: var(--lavender-mist-100);
+  --color-lavender-mist-200: var(--lavender-mist-200);
+  --color-lavender-mist-300: var(--lavender-mist-300);
+  --color-lavender-mist-400: var(--lavender-mist-400);
+  --color-lavender-mist-500: var(--lavender-mist-500);
+  --color-lavender-mist-600: var(--lavender-mist-600);
+  --color-lavender-mist-700: var(--lavender-mist-700);
+  --color-lavender-mist-800: var(--lavender-mist-800);
+  --color-lavender-mist-900: var(--lavender-mist-900);
+  --color-lavender-mist-950: var(--lavender-mist-950);
+
   /* Prussian Blue Scale */
-  --color-prussian-blue-900: #0b1428;
+  --color-prussian-blue-50: var(--prussian-blue-50);
+  --color-prussian-blue-100: var(--prussian-blue-100);
+  --color-prussian-blue-200: var(--prussian-blue-200);
+  --color-prussian-blue-300: var(--prussian-blue-300);
+  --color-prussian-blue-400: var(--prussian-blue-400);
+  --color-prussian-blue-500: var(--prussian-blue-500);
+  --color-prussian-blue-600: var(--prussian-blue-600);
+  --color-prussian-blue-700: var(--prussian-blue-700);
+  --color-prussian-blue-800: var(--prussian-blue-800);
+  --color-prussian-blue-900: var(--prussian-blue-900);
+  --color-prussian-blue-950: var(--prussian-blue-950);
+
+  --color-ink-black-50: var(--color-ink-black-50);
+  --color-ink-black-100: var(--color-ink-black-100);
+  --color-ink-black-200: var(--color-ink-black-200);
+  --color-ink-black-300: var(--color-ink-black-300);
+  --color-ink-black-400: var(--color-ink-black-400);
+  --color-ink-black-500: var(--color-ink-black-500);
+  --color-ink-black-600: var(--color-ink-black-600);
+  --color-ink-black-700: var(--color-ink-black-700);
+  --color-ink-black-800: var(--color-ink-black-800);
+  --color-ink-black-900: var(--color-ink-black-900);
+  --color-ink-black-950: var(--color-ink-black-950);
+
+  --color-platinum-50: var(--color-platinum-50);
+  --color-platinum-100: var(--color-platinum-100);
+  --color-platinum-200: var(--color-platinum-200);
+  --color-platinum-300: var(--color-platinum-300);
+  --color-platinum-400: var(--color-platinum-400);
+  --color-platinum-500: var(--color-platinum-500);
+  --color-platinum-600: var(--color-platinum-600);
+  --color-platinum-700: var(--color-platinum-700);
+  --color-platinum-800: var(--color-platinum-800);
+  --color-platinum-900: var(--color-platinum-900);
+  --color-platinum-950: var(--color-platinum-950);
+
+  --color-charcoal-blue-50: var(--color-charcoal-blue-50);
+  --color-charcoal-blue-100: var(--color-charcoal-blue-100);
+  --color-charcoal-blue-200: var(--color-charcoal-blue-200);
+  --color-charcoal-blue-300: var(--color-charcoal-blue-300);
+  --color-charcoal-blue-400: var(--color-charcoal-blue-400);
+  --color-charcoal-blue-500: var(--color-charcoal-blue-500);
+  --color-charcoal-blue-600: var(--color-charcoal-blue-600);
+  --color-charcoal-blue-700: var(--color-charcoal-blue-700);
+  --color-charcoal-blue-800: var(--color-charcoal-blue-800);
+  --color-charcoal-blue-900: var(--color-charcoal-blue-900);
+  --color-charcoal-blue-950: var(--color-charcoal-blue-950);
 }

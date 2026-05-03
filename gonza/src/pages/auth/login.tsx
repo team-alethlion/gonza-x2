@@ -63,8 +63,9 @@ const Login = () => {
       } else {
         navigate(from, { replace: true });
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }

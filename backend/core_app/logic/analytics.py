@@ -2,6 +2,7 @@ from django.db.models import Sum, Count, F, Q
 from django.utils import timezone
 from sales.models import Sale, SalesGoal
 from finance.models import Expense
+from customers.models import Customer
 from inventory.utils import get_inventory_stats
 from django.core.cache import cache
 
@@ -10,8 +11,8 @@ def get_analytics_summary(branch_id, start_date=None, end_date=None):
     Consolidated analytics summary including sales, expenses, inventory stats, and active goals.
     This reduces multiple round-trips from the frontend.
     """
-    # Bump cache version to v5 to ensure fresh data schema
-    cache_key = f"analytics_summary_v5_{branch_id}_{start_date}_{end_date}"
+    # Bump cache version to v6 to ensure fresh data schema
+    cache_key = f"analytics_summary_v6_{branch_id}_{start_date}_{end_date}"
     cached_data = cache.get(cache_key)
     if cached_data:
         return cached_data
@@ -68,7 +69,10 @@ def get_analytics_summary(branch_id, start_date=None, end_date=None):
     # 5. Inventory Stats (Value, Low Stock, etc.)
     inventory_stats = get_inventory_stats(branch_id)
 
-    # 6. Active Goals Progress
+    # 6. Customer Count
+    total_customers = Customer.objects.filter(branch_id=branch_id).count()
+
+    # 7. Active Goals Progress
     now = timezone.now()
     current_month_name = f"MONTHLY-{now.strftime('%Y-%m')}"
     
@@ -132,6 +136,7 @@ def get_analytics_summary(branch_id, start_date=None, end_date=None):
         "paidSalesCount": paid_count,
         "pendingSalesCount": pending_count,
         "totalExpenses": total_expenses,
+        "totalCustomers": total_customers,
         "recentSales": recent_sales_data,
         "inventoryStats": inventory_stats,
         "activeGoals": goals_map,
@@ -141,3 +146,4 @@ def get_analytics_summary(branch_id, start_date=None, end_date=None):
     # Cache for 5 minutes
     cache.set(cache_key, data, 300)
     return data
+

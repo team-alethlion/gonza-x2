@@ -345,6 +345,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "@hookform/resolvers@npm:5.2.2"
+  dependencies:
+    "@standard-schema/utils": "npm:^0.3.0"
+  peerDependencies:
+    react-hook-form: ^7.55.0
+  checksum: 10c0/0692cd61dcc2a70cbb27b88a37f733c39e97f555c036ba04a81bd42b0467461cfb6bafacb46c16f173672f9c8a216bd7928a2330d4e49c700d130622bf1defaf
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -734,6 +745,13 @@ __metadata:
   version: 1.0.0-rc.7
   resolution: "@rolldown/pluginutils@npm:1.0.0-rc.7"
   checksum: 10c0/9d5490b5805b25bcd1720ca01c4c032b55a0ef953dab36a8dd42c568e82214576baa464f3027cd5dff3fabcfbe3bf3db2251d12b60220f5d1cd2ffde5ee37082
+  languageName: node
+  linkType: hard
+
+"@standard-schema/utils@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@standard-schema/utils@npm:0.3.0"
+  checksum: 10c0/6eb74cd13e52d5fc74054df51e37d947ef53f3ab9e02c085665dcca3c38c60ece8d735cebbdf18fbb13c775fbcb9becb3f53109b0e092a63f0f7389ce0993fd0
   languageName: node
   linkType: hard
 
@@ -1752,6 +1770,7 @@ __metadata:
   resolution: "gonza@workspace:."
   dependencies:
     "@eslint/js": "npm:^10.0.1"
+    "@hookform/resolvers": "npm:^5.2.2"
     "@tailwindcss/vite": "npm:^4.2.4"
     "@types/node": "npm:^24.12.2"
     "@types/react": "npm:^19.2.14"
@@ -1767,6 +1786,7 @@ __metadata:
     globals: "npm:^17.5.0"
     react: "npm:^19.2.5"
     react-dom: "npm:^19.2.5"
+    react-hook-form: "npm:^7.75.0"
     react-icons: "npm:^5.6.0"
     react-router: "npm:^7.14.2"
     react-router-dom: "npm:^7.14.2"
@@ -1775,6 +1795,7 @@ __metadata:
     typescript-eslint: "npm:^8.58.2"
     vite: "npm:^8.0.10"
     vite-plugin-pages: "npm:^0.33.3"
+    zod: "npm:^4.4.2"
     zustand: "npm:^5.0.12"
   languageName: unknown
   linkType: soft
@@ -2437,6 +2458,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-hook-form@npm:^7.75.0":
+  version: 7.75.0
+  resolution: "react-hook-form@npm:7.75.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 10c0/4c264ffde2fae6d5f3158a97784d5bb44e7cbffea3204af364244fcd6921b763f4e66fd8e34423fb416baa8bee2cfa4777556a7245f66de24a28be28b6af172e
+  languageName: node
+  linkType: hard
+
 "react-icons@npm:^5.6.0":
   version: 5.6.0
   resolution: "react-icons@npm:5.6.0"
@@ -2927,7 +2957,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25.0 || ^4.0.0":
+"zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.4.2":
   version: 4.4.2
   resolution: "zod@npm:4.4.2"
   checksum: 10c0/aa5097464c41cf22d715cbc29873ae6feaaf56e687b81d140458d7c01201e7b9de1ee46c8567b5458ee3c0068b8a82b2652535b5d39589fcb5562d861c83ded3

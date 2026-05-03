@@ -7,7 +7,7 @@ import {
   NavbarBrand,
   NavbarToggle,
 } from "flowbite-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
@@ -16,7 +16,6 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { UserAvatar } from "./UserAvatar";
 
 export function SubscriptionNavbar() {
-  const location = useLocation();
   const navigate = useNavigate();
   const { mode, toggleMode } = useThemeStore();
   const { user, isAuthenticated, logout } = useAuthStore();

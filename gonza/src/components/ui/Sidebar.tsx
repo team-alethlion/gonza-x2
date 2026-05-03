@@ -29,13 +29,23 @@ import {
   HiBriefcase,
 } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 interface AppSidebarProps {
   collapsed?: boolean;
 }
 
 export function AppSidebar({ collapsed }: AppSidebarProps) {
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [networkSpeed, setNetworkSpeed] = useState<string>("Detecting...");
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+    navigate("/auth/login");
+  };
 
   useEffect(() => {
     const updateConnectionInfo = () => {
@@ -64,18 +74,21 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
   }, []);
 
   return (
-    <Sidebar aria-label="Agency Management Sidebar" collapsed={collapsed}>
+    <Sidebar
+      aria-label="Agency Management Sidebar"
+      collapsed={collapsed}
+      className="bg-white/70 dark:bg-prussian-blue-900/70 backdrop-blur-lg">
       {!collapsed && (
-        <div className="px-4 py-6 border-b border-gray-100 dark:border-[#1f4e58] mb-2 bg-[#252861] text-white">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-[#80ced7]">
-            Main Branch
+        <div className="px-4 py-6 border-b border-gray-100 dark:border-white/5 mb-2 bg-brand-soft/30 dark:bg-brand-primary/10 backdrop-blur-md">
+          <h2 className="text-xs font-black uppercase tracking-widest text-brand-primary dark:text-brand-accent">
+            {user?.branch?.name || "Main Branch"}
           </h2>
           <div className="mt-2 flex items-center">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
-                Bonnie Green{" "}
-                <span className="text-xs font-normal opacity-80">
-                  (Owner)
+              <p className="text-sm font-bold truncate text-gray-900 dark:text-white">
+                {user?.first_name} {user?.last_name || ""}{" "}
+                <span className="text-xs font-medium opacity-60 capitalize">
+                  ({user?.role?.name || "Member"})
                 </span>
               </p>
             </div>
@@ -246,7 +259,8 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
               Manage Businesses
             </SidebarItem>
             <SidebarItem
-              href="/logout"
+              onClick={handleLogout}
+              className="cursor-pointer"
               icon={HiLogout}
               title={collapsed ? "Logout" : undefined}>
               Logout

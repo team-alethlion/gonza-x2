@@ -148,7 +148,7 @@ AUTH_USER_MODEL = 'users.User'
 
 UNFOLD = {
     "SITE_TITLE": "Gonza Admin Panel",
-    "SITE_HEADER": "Kyusa | Management",
+    "SITE_HEADER": "Gonza | Management",
     "SITE_ICON": lambda request: "/static/icon.png", 
     "SITE_FAVICON": lambda request: "/static/favicon.ico",
     "SITE_SYMBOL": "speed", # material symbols name
@@ -194,4 +194,4 @@ EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = os.environ.get('SMTP_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASS')
-DEFAULT_FROM_EMAIL = f"Kyusa <{os.environ.get('SMTP_FROM') or os.environ.get('SMTP_USER')}>"
+DEFAULT_FROM_EMAIL = f"Gonza <{os.environ.get('SMTP_FROM') or os.environ.get('SMTP_USER')}>"

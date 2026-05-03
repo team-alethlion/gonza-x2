@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Label, TextInput, Alert } from "flowbite-react";
-import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiUser, HiCheck, HiInformationCircle } from "react-icons/hi";
+import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiUser, HiCheck, HiInformationCircle, HiRefresh } from "react-icons/hi";
 import { FcGoogle } from "react-icons/fc";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -21,16 +21,37 @@ const Signup = () => {
   
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timer, setTimer] = useState(600); // 10 minutes in seconds
+
+  const canResend = step === 2 && timer === 0;
 
   const { mode } = useThemeStore();
   const { login: storeLogin } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleInitiateSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    if (step === 2 && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, timer]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleInitiateSignup = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError(null);
     
-    if (password !== confirmPassword) {
+    if (step === 1 && password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
@@ -47,8 +68,10 @@ const Signup = () => {
       if (!res.ok) throw new Error(data.error || "Failed to initiate signup");
 
       setStep(2);
-    } catch (err: any) {
-      setError(err.message);
+      setTimer(600); // Reset to 10 mins
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -89,8 +112,9 @@ const Signup = () => {
       // 4. Update store and redirect
       await storeLogin(userData, tokenData.access, tokenData.refresh);
       navigate("/onboarding", { replace: true });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -240,7 +264,7 @@ const Signup = () => {
         ) : (
           <form className="flex flex-col gap-4" onSubmit={handleVerifySignup}>
             <div>
-              <div className="mb-2 block">
+              <div className="mb-2 block text-center">
                 <Label htmlFor="code" value="Verification Code" />
               </div>
               <TextInput
@@ -253,24 +277,52 @@ const Signup = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 disabled={isSubmitting}
+                className="text-center"
               />
             </div>
+
+            <div className="text-center py-2">
+              {timer > 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Code expires in <span className="font-bold text-[#f05a2b]">{formatTime(timer)}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-red-500 font-medium">
+                  Verification code has expired.
+                </p>
+              )}
+            </div>
+
             <Button 
               type="submit" 
               color="primary"
               isProcessing={isSubmitting}
-              disabled={isSubmitting}
+              disabled={isSubmitting || timer === 0}
             >
               Verify & Complete Signup
             </Button>
-            <button 
-              type="button" 
-              onClick={() => setStep(1)} 
-              className="text-sm text-gray-500 hover:underline"
-              disabled={isSubmitting}
-            >
-              Go back to details
-            </button>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                color="light"
+                onClick={() => handleInitiateSignup()}
+                disabled={isSubmitting || !canResend}
+                className="w-full"
+              >
+                <HiRefresh className={`mr-2 h-4 w-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+                Resend Code
+              </Button>
+              
+              <button 
+                type="button" 
+                onClick={() => setStep(1)} 
+                className="text-sm text-gray-500 hover:underline"
+                disabled={isSubmitting}
+              >
+                Go back to details
+              </button>
+            </div>
           </form>
         )}
 

@@ -15,6 +15,7 @@ import { PageLoader } from "./components/ui/Loader";
 
 // Import Auth Guards
 import { AuthGuard } from "./components/auth/AuthGuard";
+import { AccessGuard } from "./components/auth/AccessGuard";
 import { OnboardingGuard } from "./components/auth/OnboardingGuard";
 
 // Import Layouts
@@ -78,9 +79,11 @@ function App() {
         path: "/agency",
         element: (
           <AuthGuard>
-            <OnboardingGuard requireOnboarded={true}>
-              <AgencyLayout />
-            </OnboardingGuard>
+            <AccessGuard>
+              <OnboardingGuard requireOnboarded={true}>
+                <AgencyLayout />
+              </OnboardingGuard>
+            </AccessGuard>
           </AuthGuard>
         ),
         errorElement: <ErrorPage />,
@@ -88,7 +91,13 @@ function App() {
       },
       {
         path: "/subscription",
-        element: <SubscriptionLayout />,
+        element: (
+          <AuthGuard>
+            <AccessGuard>
+              <SubscriptionLayout />
+            </AccessGuard>
+          </AuthGuard>
+        ),
         errorElement: <ErrorPage />,
         children: mapRoutes(subscriptionRoutes, "subscription"),
       },
@@ -96,9 +105,11 @@ function App() {
         path: "/onboarding",
         element: (
           <AuthGuard>
-            <OnboardingGuard requireOnboarded={false}>
-              <OnboardingLayout />
-            </OnboardingGuard>
+            <AccessGuard>
+              <OnboardingGuard requireOnboarded={false}>
+                <OnboardingLayout />
+              </OnboardingGuard>
+            </AccessGuard>
           </AuthGuard>
         ),
         errorElement: <ErrorPage />,
