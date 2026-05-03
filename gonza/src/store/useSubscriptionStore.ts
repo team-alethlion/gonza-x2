@@ -39,14 +39,14 @@ export const useSubscriptionStore = create<SubscriptionState>((_set) => ({
  */
 export const useSubscription = () => {
   const { user } = useAuthStore();
-  const agency = user?.agency as any; // Cast for now based on backend research
+  const agency = user?.agency;
 
   return {
     currentPlanId: agency?.package?.id || null,
     status: (agency?.subscription_status || "none") as SubscriptionStatus,
     hasUsedTrial: agency?.had_trial_before || false,
-    daysLeft: agency?.days_left || 0,
-    isTrial: agency?.is_trial || false,
+    daysLeft: agency?.days_left ?? 0,
+    isTrial: agency?.subscription_status === 'trial',
     isInitialized: true,
   };
 };

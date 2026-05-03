@@ -1,14 +1,42 @@
 import { create } from "zustand";
 import { db } from "../db/db";
 
+interface Package {
+  id: string;
+  name: string;
+  monthly_price: number;
+  yearly_price: number;
+  trial_days: number;
+  has_free_trial: boolean;
+}
+
+interface Agency {
+  id: string;
+  name: string;
+  subscription_status: "trial" | "active" | "expired" | "suspended";
+  had_trial_before: boolean;
+  days_left: number;
+  is_trial: boolean;
+  is_onboarded: boolean;
+  package?: Package;
+}
+
 interface User {
   id: string;
   email: string;
   first_name?: string;
   last_name?: string;
+  image?: string;
   is_onboarded: boolean;
-  role?: string;
-  agency?: string;
+  role?: {
+    id: string;
+    name: string;
+  };
+  agency?: Agency;
+  branch?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface AuthState {
