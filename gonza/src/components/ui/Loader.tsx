@@ -42,12 +42,33 @@ const Loader: React.FC<LoaderProps> = ({
 };
 
 /**
- * Full page loader overlay
+ * Full page loader overlay with brand colors and structured layout
  */
 export const PageLoader: React.FC = () => {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-[#0B1326]/80 backdrop-blur-sm">
-      <Loader size="xl" />
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-[#0B1326] transition-colors duration-500">
+      {/* Background decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#252861] via-[#f05a2b] to-[#252861] animate-pulse"></div>
+      
+      <div className="relative">
+        {/* Subtle glow behind the loader */}
+        <div className="absolute -inset-10 bg-[#f05a2b]/10 blur-3xl rounded-full animate-pulse"></div>
+        
+        <Loader size="xl" showText={false} />
+      </div>
+      
+      <div className="mt-8 text-center">
+        <h2 className="text-2xl font-bold text-[#252861] dark:text-white tracking-tight">
+          Gonza Systems
+        </h2>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 animate-pulse">
+          Setting up your workspace...
+        </p>
+      </div>
+      
+      <div className="absolute bottom-12 text-gray-400 dark:text-gray-600 text-xs font-medium uppercase tracking-widest">
+        Built for Growth
+      </div>
     </div>
   );
 };

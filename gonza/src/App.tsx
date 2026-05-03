@@ -10,6 +10,9 @@ import routes from "~react-pages";
 import { theme } from "./theme";
 import "./App.css";
 
+// Import UI Components
+import { PageLoader } from "./components/ui/Loader";
+
 // Import Layouts
 import PublicLayout from "./components/layouts/PublicLayout";
 import AgencyLayout from "./components/layouts/AgencyLayout";
@@ -95,7 +98,7 @@ function App() {
   }, []);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<PageLoader />}>
       <ThemeProvider theme={theme}>
         <RouterProvider router={router} />
       </ThemeProvider>
