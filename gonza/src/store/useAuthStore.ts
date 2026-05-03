@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { db } from "../db/db";
+import { CONFIG, getApiUrl } from "../config";
 
 interface Package {
   id: string;
@@ -48,6 +49,7 @@ interface AuthState {
   login: (user: User, access: string, refresh: string) => Promise<void>;
   logout: () => Promise<void>;
   setOnboarded: (status: boolean) => Promise<void>;
+  refreshProfile: () => Promise<void>;
   init: () => Promise<void>;
 }
 
@@ -63,19 +65,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const authData = await db.settings.get("auth-session");
       if (authData?.value) {
         const { user, token, refreshToken } = authData.value;
+        
+        // Set initial state from DB
         set({
           user,
           token,
           refreshToken,
           isAuthenticated: !!token,
-          isLoading: false,
         });
-      } else {
-        set({ isLoading: false });
+
+        // Silently refresh profile to get latest data (e.g. days_left)
+        if (token) {
+          try {
+            const res = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+              const updatedUser = await res.json();
+              await get().login(updatedUser, token, refreshToken);
+            } else if (res.status === 401) {
+              // Token expired
+              await get().logout();
+            }
+          } catch (e) {
+            console.error("Failed to sync profile on init:", e);
+          }
+        }
       }
+      set({ isLoading: false });
     } catch (error) {
       console.error("Failed to initialize auth from Dexie:", error);
       set({ isLoading: false });
+    }
+  },
+
+  refreshProfile: async () => {
+    const { token, refreshToken } = get();
+    if (!token) return;
+
+    try {
+      const res = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const updatedUser = await res.json();
+        await get().login(updatedUser, token, refreshToken!);
+      }
+    } catch (e) {
+      console.error("Failed to refresh profile:", e);
     }
   },
 
