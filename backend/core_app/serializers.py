@@ -15,7 +15,12 @@ class AgencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agency
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'subscription_status', 'had_trial_before',
+            'trial_end_date', 'subscription_expiry', 'is_unlimited_usage',
+            'is_onboarded', 'is_frozen', 'package', 'created_at',
+            'updated_at', 'days_left', 'is_trial'
+        ]
 
     def get_days_left(self, obj):
         from django.utils import timezone
