@@ -1,37 +1,49 @@
 import React, { useState } from "react";
 import { Button, Card, Badge, ToggleSwitch } from "flowbite-react";
-import { HiCheck, HiX, HiLightningBolt, HiInformationCircle } from "react-icons/hi";
+import { HiCheck, HiLightningBolt } from "react-icons/hi";
 import { PLANS } from "./plans";
 import type { Plan } from "./plans";
-import { useSubscriptionStore } from "../../store/useSubscriptionStore";
+import { useSubscriptionStore, useSubscription } from "../../store/useSubscriptionStore";
 import type { BillingCycle } from "../../store/useSubscriptionStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const SubscriptionHome = () => {
   const { 
-    currentPlanId, 
-    status, 
-    hasUsedTrial, 
     subscribe, 
     upgrade, 
     reactivate, 
     startTrial 
   } = useSubscriptionStore();
   
+  const { currentPlanId, status, hasUsedTrial, daysLeft } = useSubscription();
+  const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [isYearly, setIsYearly] = useState(false);
+
+  const handleAction = (action: () => Promise<void>) => {
+    if (!isAuthenticated) {
+      navigate("/auth/login", { state: { from: location } });
+      return;
+    }
+    action();
+  };
 
   const getButtonProps = (plan: Plan) => {
     const isCurrentPlan = currentPlanId === plan.id;
     const cycle: BillingCycle = isYearly ? "yearly" : "monthly";
 
-    // 1. None state
-    if (status === "none") {
+    // 1. Not Authenticated or No Subscription
+    if (!isAuthenticated || status === "none") {
       return (
         <div className="flex flex-col gap-3">
           <Button 
             color="primary"
             size="lg"
             className="w-full"
-            onClick={() => subscribe(plan.id, cycle)}
+            onClick={() => handleAction(() => subscribe(plan.id, cycle))}
           >
             Subscribe Now
           </Button>
@@ -40,7 +52,7 @@ const SubscriptionHome = () => {
               color="light" 
               size="lg"
               className="w-full border-2 border-gray-200 dark:border-gray-700"
-              onClick={() => startTrial(plan.id)}
+              onClick={() => handleAction(() => startTrial(plan.id))}
             >
               Start 7-day Free Trial
             </Button>
@@ -49,12 +61,12 @@ const SubscriptionHome = () => {
       );
     }
 
-    // 2. Active state
-    if (status === "active") {
+    // 2. Active state (includes 'trial' status)
+    if (status === "active" || status === "trial") {
       if (isCurrentPlan) {
         return (
           <Button color="gray" disabled className="w-full cursor-not-allowed">
-            Current Plan
+            Current Plan {status === 'trial' && '(Trial)'}
           </Button>
         );
       }
@@ -65,7 +77,7 @@ const SubscriptionHome = () => {
 
       if (targetIdx > currentIdx) {
         return (
-          <Button color="secondary" size="lg" className="w-full" onClick={() => upgrade(plan.id)}>
+          <Button color="secondary" size="lg" className="w-full" onClick={() => handleAction(() => upgrade(plan.id))}>
             <HiLightningBolt className="mr-2 h-5 w-5" />
             Upgrade Plan
           </Button>
@@ -73,7 +85,7 @@ const SubscriptionHome = () => {
       }
       
       return (
-        <Button color="primary" size="lg" className="w-full" onClick={() => subscribe(plan.id, cycle)}>
+        <Button color="primary" size="lg" className="w-full" onClick={() => handleAction(() => subscribe(plan.id, cycle))}>
           Switch to this Plan
         </Button>
       );
@@ -83,7 +95,7 @@ const SubscriptionHome = () => {
     if (status === "expired") {
       if (isCurrentPlan) {
         return (
-          <Button color="failure" size="lg" className="w-full" onClick={() => reactivate()}>
+          <Button color="failure" size="lg" className="w-full" onClick={() => handleAction(() => reactivate())}>
             Reactivate Plan
           </Button>
         );
@@ -93,7 +105,7 @@ const SubscriptionHome = () => {
           color="primary"
           size="lg"
           className="w-full"
-          onClick={() => subscribe(plan.id, cycle)}
+          onClick={() => handleAction(() => subscribe(plan.id, cycle))}
         >
           Subscribe
         </Button>
@@ -114,14 +126,21 @@ const SubscriptionHome = () => {
         </p>
         
         {status !== "none" && (
-          <div className="mb-10">
+          <div className="mb-10 flex flex-col items-center gap-2">
             <Badge 
-              color={status === "active" ? "success" : "failure"} 
+              color={status === "active" || status === "trial" ? "success" : "failure"} 
               size="lg" 
               className="inline-flex items-center px-6 py-2.5 rounded-full font-bold uppercase tracking-wider"
             >
-              {status === "active" ? "Active Subscription" : "Subscription Expired"}
+              {status === "active" && "Active Subscription"}
+              {status === "trial" && "Free Trial Active"}
+              {status === "expired" && "Subscription Expired"}
             </Badge>
+            {(status === "active" || status === "trial") && (
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {daysLeft} days remaining in your {status === 'trial' ? 'trial' : 'plan'}
+              </p>
+            )}
           </div>
         )}
 

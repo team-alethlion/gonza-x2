@@ -10,10 +10,29 @@ class PackageSerializer(serializers.ModelSerializer):
 
 class AgencySerializer(serializers.ModelSerializer):
     package = PackageSerializer(read_only=True)
+    days_left = serializers.SerializerMethodField()
+    is_trial = serializers.SerializerMethodField()
 
     class Meta:
         model = Agency
         fields = '__all__'
+
+    def get_days_left(self, obj):
+        from django.utils import timezone
+        now = timezone.now()
+        target_date = None
+        
+        if obj.subscription_status == 'trial':
+            target_date = obj.trial_end_date
+        elif obj.subscription_status == 'active':
+            target_date = obj.subscription_expiry
+            
+        if target_date and target_date > now:
+            return (target_date - now).days
+        return 0
+
+    def get_is_trial(self, obj):
+        return obj.subscription_status == 'trial'
 
 class BranchSettingsSerializer(serializers.ModelSerializer):
     class Meta:

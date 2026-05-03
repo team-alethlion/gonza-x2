@@ -1,88 +1,52 @@
 import { create } from "zustand";
-import { db } from "../db/db";
+import { useAuthStore } from "./useAuthStore";
 
-export type SubscriptionStatus = "active" | "expired" | "none";
+export type SubscriptionStatus = "active" | "expired" | "none" | "trial";
 export type BillingCycle = "monthly" | "yearly";
 
 interface SubscriptionState {
-  currentPlanId: string | null;
-  status: SubscriptionStatus;
-  hasUsedTrial: boolean;
-  billingCycle: BillingCycle;
-  isInitialized: boolean;
-  
   // Actions
   subscribe: (planId: string, cycle: BillingCycle) => Promise<void>;
   upgrade: (planId: string) => Promise<void>;
   reactivate: () => Promise<void>;
   startTrial: (planId: string) => Promise<void>;
-  init: () => Promise<void>;
 }
 
-export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
-  currentPlanId: null,
-  status: "none",
-  hasUsedTrial: false,
-  billingCycle: "monthly",
-  isInitialized: false,
-
-  init: async () => {
-    try {
-      const subData = await db.settings.get("user-subscription");
-      if (subData) {
-        set({ ...subData.value, isInitialized: true });
-      } else {
-        set({ isInitialized: true });
-      }
-    } catch (error) {
-      console.error("Failed to init subscription:", error);
-      set({ isInitialized: true });
-    }
-  },
-
+export const useSubscriptionStore = create<SubscriptionState>((_set) => ({
   subscribe: async (planId, cycle) => {
-    const newState = {
-      currentPlanId: planId,
-      status: "active" as SubscriptionStatus,
-      hasUsedTrial: get().hasUsedTrial,
-      billingCycle: cycle,
-    };
-    await db.settings.put({ id: "user-subscription", value: newState });
-    set(newState);
+    console.log("Subscribing to:", planId, cycle);
+    // TODO: Implement backend call
   },
 
   upgrade: async (planId) => {
-    const newState = {
-      ...get(),
-      currentPlanId: planId,
-      status: "active" as SubscriptionStatus,
-    };
-    await db.settings.put({ id: "user-subscription", value: newState });
-    set(newState);
+    console.log("Upgrading to:", planId);
+    // TODO: Implement backend call
   },
 
   reactivate: async () => {
-    const newState = {
-      ...get(),
-      status: "active" as SubscriptionStatus,
-    };
-    await db.settings.put({ id: "user-subscription", value: newState });
-    set(newState);
+    console.log("Reactivating subscription");
+    // TODO: Implement backend call
   },
 
   startTrial: async (planId) => {
-    const newState = {
-      currentPlanId: planId,
-      status: "active" as SubscriptionStatus,
-      hasUsedTrial: true,
-      billingCycle: "monthly" as BillingCycle,
-    };
-    await db.settings.put({ id: "user-subscription", value: newState });
-    set(newState);
+    console.log("Starting trial for:", planId);
+    // TODO: Implement backend call
   },
 }));
 
-// Initialize
-if (typeof window !== "undefined") {
-  useSubscriptionStore.getState().init();
-}
+/**
+ * Derived helper hook to get subscription status from auth store
+ */
+export const useSubscription = () => {
+  const { user } = useAuthStore();
+  const agency = user?.agency as any; // Cast for now based on backend research
+
+  return {
+    currentPlanId: agency?.package?.id || null,
+    status: (agency?.subscription_status || "none") as SubscriptionStatus,
+    hasUsedTrial: agency?.had_trial_before || false,
+    daysLeft: agency?.days_left || 0,
+    isTrial: agency?.is_trial || false,
+    isInitialized: true,
+  };
+};
