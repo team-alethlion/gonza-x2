@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@source "../node_modules/flowbite-react/dist/esm/**/*.mjs";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Brand Colors - Light Mode (Mapped to Palette) */
+  --primary: #252861;      /* Midnight Indigo */
+  --secondary: #f05a2b;    /* Vibrant Orange */
+  --accent: #9b87f5;       /* Vivid Purple */
+  --bg-soft: #F1F0FB;      /* Lavender White */
+
+  --text: #374151;
+  --text-h: #111827;
+  --bg: #ffffff;
+  --border: #e5e7eb;
+  
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  /* Scrollbar Variables - Light */
+  --scrollbar-bg: #f1f1f1;
+  --scrollbar-thumb: #ccc;
+  --scrollbar-thumb-hover: #bbb;
+
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+.dark :root,
+.dark {
+  /* Brand Colors - Dark Mode Adjustments (Mapped to Palette) */
+  --primary: #dadbf1;      /* space-indigo-100 */
+  --secondary: #f05a2b;    /* tiger-flame (brand core) */
+  --accent: #9b87f5;       /* soft-periwinkle (brand core) */
+  --bg-soft: #1c1e4a;      /* space-indigo-800 */
+
+  --text: #d1d5db;
+  --text-h: #f9fafb;
+  --bg: #0B1326;           /* prussian-blue-900 (custom brand) */
+  --border: #1c1e4a;       /* space-indigo-800 */
+  
+  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
+    rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+  /* Scrollbar Variables - Dark */
+  --scrollbar-bg: #0b1428;
+  --scrollbar-thumb: #1c1e4a;
+  --scrollbar-thumb-hover: #2a2e6f;
+}
+
+/* Custom Scrollbar Utility */
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--scrollbar-bg);
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+    border: 2px solid var(--scrollbar-bg);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  /* Firefox support */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
+}
+
+/* Additional utility for brand colors in Tailwind */
+@theme {
+  --color-brand-primary: var(--primary);
+  --color-brand-secondary: var(--secondary);
+  --color-brand-accent: var(--accent);
+  --color-brand-soft: var(--bg-soft);
+  
+  /* Space Indigo Scale */
+  --color-space-indigo-50: #ededf8;
+  --color-space-indigo-100: #dadbf1;
+  --color-space-indigo-200: #b5b7e3;
+  --color-space-indigo-300: #9094d5;
+  --color-space-indigo-400: #6b70c7;
+  --color-space-indigo-500: #464cb9;
+  --color-space-indigo-600: #383d94;
+  --color-space-indigo-700: #2a2e6f;
+  --color-space-indigo-800: #1c1e4a;
+  --color-space-indigo-900: #0e0f25;
+  
+  /* Tiger Flame Scale */
+  --color-tiger-flame-50: #fdece7;
+  --color-tiger-flame-100: #fcdacf;
+  --color-tiger-flame-200: #f8b4a0;
+  --color-tiger-flame-300: #f58f70;
+  --color-tiger-flame-400: #f26a40;
+  --color-tiger-flame-500: #ee4411;
+  --color-tiger-flame-600: #bf370d;
+  
+  /* Soft Periwinkle Scale */
+  --color-soft-periwinkle-300: #8971f4;
+  --color-soft-periwinkle-400: #6242f0;
+  --color-soft-periwinkle-500: #3b13ec;
+  
+  /* Lavender Mist Scale */
+  --color-lavender-mist-50: #ecebfa;
+  
+  /* Prussian Blue Scale */
+  --color-prussian-blue-900: #0b1428;
+}

@@ -1,0 +1,902 @@
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import datetime, date
+from decimal import Decimal
+
+from .models import SalesGoal, SaleCategory, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
+from .filters import SaleFilter
+from .serializers import (
+    SalesGoalSerializer, SaleCategorySerializer,
+    SaleSerializer, SaleItemSerializer, InstallmentPaymentSerializer,
+    SalesReturnSerializer, SalesReturnItemSerializer
+)
+from inventory.models import Product, ProductHistory
+from finance.models import Expense, CashAccount, CashTransaction
+from core_app.pdf_utils import ReceiptGenerator, SalesReportGenerator, ProfitLossGenerator, generate_pdf_response
+from django.db.models.functions import Cast
+from django.db.models import Count, F, DecimalField
+import io
+
+from decimal import Decimal, InvalidOperation
+from core.utils import to_decimal
+
+class SalesGoalViewSet(viewsets.ModelViewSet):
+    queryset = SalesGoal.objects.all()
+    serializer_class = SalesGoalSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        branch_id = self.request.query_params.get('branchId')
+        period = self.request.query_params.get('period')
+        period_name = self.request.query_params.get('period_name')
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        if period:
+            qs = qs.filter(period=period)
+        if period_name:
+            qs = qs.filter(period_name=period_name)
+        return qs.order_by('-start_date')
+
+    @action(detail=False, methods=['get'])
+    def progress(self, request):
+        branch_id = request.query_params.get('branchId')
+        period_name = request.query_params.get('period_name')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if not branch_id or not period_name:
+            return Response({"error": "branchId and period_name required"}, status=400)
+
+        # 1. Get the goal
+        goal = SalesGoal.objects.filter(branch_id=branch_id, period_name=period_name).first()
+        
+        # 2. Get current sales aggregate for this period
+        sales_qs = Sale.objects.filter(branch_id=branch_id, is_deleted=False).exclude(status='QUOTE')
+        if start_date:
+            sales_qs = sales_qs.filter(date__gte=start_date)
+        if end_date:
+            sales_qs = sales_qs.filter(date__lte=end_date)
+            
+        aggregate = sales_qs.aggregate(total=Sum('total_amount'))
+        current_sales = float(aggregate['total'] or 0)
+
+        return Response({
+            "goal": {
+                "id": goal.id if goal else None,
+                "target": float(goal.amount_target) if goal else 0,
+                "period": goal.period if goal else None,
+                "period_name": goal.period_name if goal else period_name,
+            },
+            "current_sales": current_sales,
+            "progress_percentage": float((current_sales / float(goal.amount_target) * 100)) if (goal and goal.amount_target > 0) else 0
+        })
+
+    def perform_create(self, serializer):
+        branch_id = self.request.data.get('branch')
+        start_date = self.request.data.get('start_date')
+        end_date = self.request.data.get('end_date')
+        
+        # Calculate current progress for this period
+        current_progress = 0
+        if branch_id and start_date and end_date:
+            current_progress = Sale.objects.filter(
+                branch_id=branch_id,
+                date__range=[start_date, end_date]
+            ).exclude(status='QUOTE').aggregate(total=Sum('total_amount'))['total'] or 0
+            
+        serializer.save(current_amount=current_progress)
+
+class SaleCategoryViewSet(viewsets.ModelViewSet):
+    queryset = SaleCategory.objects.all()
+    serializer_class = SaleCategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        branch_id = self.request.query_params.get('branchId')
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        return qs.order_by('-created_at')
+
+from .utils import generate_receipt_number, get_next_receipt_number
+
+from .logic.financials import calculate_sale_financials, resolve_payment_logic, to_decimal
+
+class SaleViewSet(viewsets.ModelViewSet):
+    queryset = Sale.objects.all().select_related(
+        'customer', 
+        'user', 
+        'branch',
+        'cash_transaction',
+        'cash_transaction__account'
+    ).prefetch_related('items', 'installments')
+    serializer_class = SaleSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_class = SaleFilter
+    search_fields = ['receipt_number', 'customer_name', 'notes']
+
+    def get_queryset(self):
+        # 🛡️ SECURITY: Strict Multi-tenant isolation
+        # 1. Filter by current user's Agency
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        qs = super().get_queryset().filter(is_deleted=False, agency_id=agency_id)
+        
+        # 2. Filter by specific branch if provided
+        branch_id = self.request.query_params.get('branchId')
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+            
+        return qs.order_by('-created_at')
+
+    @action(detail=False, methods=['post'])
+    def validate_totals(self, request):
+        """
+        🚀 API ENDPOINT: Frontend can call this to verify totals before submission.
+        """
+        data = request.data
+        items = data.get('items', [])
+        tax_rate = data.get('taxRate', 0)
+        shipping = data.get('shippingCost', 0)
+        status = data.get('paymentStatus', 'Paid')
+        paid_input = data.get('amountPaid', 0)
+
+        fin = calculate_sale_financials(items, tax_rate, shipping)
+        pay = resolve_payment_logic(status, fin['total_amount'], paid_input)
+
+        return Response({
+            **fin,
+            **pay
+        })
+
+    def _process_inventory(self, items, branch_id, user_id, receipt_number, date_obj):
+        print(f"DEBUG: Processing inventory for Sale #{receipt_number}. Items count: {len(items)}")
+        if not date_obj:
+            date_obj = timezone.now()
+            
+        for index, item in enumerate(items):
+            product_id = item.get('productId')
+            print(f"DEBUG: Item {index} productId: {product_id}, quantity: {item.get('quantity')}")
+            
+            if not product_id:
+                print(f"DEBUG: Item {index} has no productId. Skipping inventory.")
+                continue
+                
+            try:
+                # Use select_for_update to handle concurrency safely
+                product = Product.objects.select_for_update().get(id=product_id)
+                print(f"DEBUG: Found product {product.name} (ID: {product.id}). Current stock: {product.stock}")
+            except Product.DoesNotExist:
+                print(f"DEBUG: Product ID {product_id} not found in database. Skipping.")
+                continue
+                
+            qty_sold = int(to_decimal(item.get('quantity', 0)))
+            old_stock = int(product.stock)
+            
+            # ⚡️ FLEXIBLE INVENTORY: Allow selling more than available (negative stock)
+            # as per user's requirement (sourced externally or just-arrived items)
+            new_stock = old_stock - qty_sold
+            
+            product.stock = new_stock
+            
+            # 🛡️ SIGNAL CONTEXT: Provide info for automated history logging
+            # Determine if it's an over-sale for better logging
+            oversale_note = ""
+            if qty_sold > old_stock:
+                deficit = qty_sold - old_stock
+                oversale_note = f" (Oversale of {deficit} units)"
+
+            product._history_user_id = user_id
+            product._history_type = 'SALE'
+            product._history_reason = f"Sale #{receipt_number}{oversale_note}"
+            product._history_reference_id = receipt_number
+            product._history_reference_type = 'SALE'
+            product._history_created_at = date_obj
+
+            # ⚡️ CRITICAL FIX: Save WITHOUT update_fields to ensure updated_at is triggered.
+            # The signal will catch this and record the history automatically.
+            product.save() 
+
+    def _create_sale_from_data(self, data, user_id):
+        raw_items = data.get('items', [])
+        status_val = data.get('paymentStatus', 'PENDING')
+        
+        # 🛡️ DATA INTEGRITY: Normalize incoming status strings
+        if status_val == 'Paid': status_val = 'COMPLETED'
+        if status_val == 'NOT PAID': status_val = 'UNPAID'
+        if status_val == 'Installment Sale': status_val = 'INSTALLMENT'
+        
+        print(f"DEBUG: Creating sale. Status: {status_val}, Items count: {len(raw_items)}")
+        
+        tax_rate = to_decimal(data.get('taxRate', 0))
+        branch_id = data.get('branchId')
+        shipping_cost = to_decimal(data.get('shippingCost', 0))
+        
+        # 🚀 HEAVY LIFTING: Use centralized logic
+        fin = calculate_sale_financials(raw_items, tax_rate, shipping_cost)
+        pay = resolve_payment_logic(status_val, fin['total_amount'], data.get('amountPaid', 0))
+        
+        # 🛡️ STATUS SYNC: Use the status resolved by logic (handles auto-transitions)
+        final_status = pay['status']
+        
+        import uuid
+        receipt_number = data.get('receiptNumber')
+        
+        # ⚡️ PROFESSIONAL RECEIPT GENERATION: Ensure server-side sequentiality
+        # Generate a new number if current one is missing, 'PREVIEW', or we want to enforce it
+        if not receipt_number or receipt_number == 'PREVIEW':
+            receipt_number = generate_receipt_number(branch_id)
+        
+        # Check for receipt number collision and handle it gracefully
+        if receipt_number and Sale.objects.filter(receipt_number=receipt_number).exists():
+            receipt_number = f"{receipt_number}-{uuid.uuid4().hex[:4].upper()}"
+
+        customer_id = data.get('customerId')
+        if customer_id == "":
+            customer_id = None
+
+        sale = Sale.objects.create(
+            id=f"sl_{uuid.uuid4().hex[:12]}",
+            user_id=user_id,
+            branch_id=branch_id,
+            agency_id=data.get('agencyId'),
+            receipt_number=receipt_number,
+            customer_name=data.get('customerName', 'Valued Customer'),
+            customer_phone=data.get('customerContact'),
+            customer_address=data.get('customerAddress'),
+            customer_id=customer_id,
+            category_id=data.get('categoryId'),
+            status=final_status,
+            amount_paid=pay['amount_paid'],
+            balance_due=pay['balance_due'],
+            notes=data.get('notes'),
+            shipping_cost=fin['shipping_cost'],
+            discount_reason=data.get('discountReason'),
+            payment_reference=data.get('paymentReference'),
+            cash_transaction_id=data.get('cashTransactionId'),
+            tax_amount=fin['tax_amount'],
+            subtotal=fin['subtotal'],
+            discount_amount=fin['discount_amount'],
+            total_amount=fin['total_amount'],
+            total_cost=fin['total_cost'],
+            profit=fin['profit'],
+        )
+
+        # ⚡️ FINANCIAL INTEGRATION: Create Cash Transaction if linked and Paid
+        link_to_cash = data.get('linkToCash', False)
+        cash_account_id = data.get('cashAccountId')
+        if link_to_cash and cash_account_id and status_val == 'COMPLETED':
+            try:
+                account = CashAccount.objects.get(id=cash_account_id)
+                description = f"Sale to {sale.customer_name or 'Valued Customer'} - Receipt #{sale.receipt_number}"
+                
+                cash_tx = CashTransaction.objects.create(
+                    id=f"ctx_{uuid.uuid4().hex[:12]}",
+                    amount=sale.total_amount,
+                    transaction_type='cash_in',
+                    category='Cash sale',
+                    description=description,
+                    agency_id=sale.agency_id,
+                    branch_id=sale.branch_id,
+                    user_id=user_id,
+                    account=account,
+                    date=sale.date,
+                    reference_id=sale.id,
+                    reference_type='SALE'
+                )
+                
+                sale.cash_transaction = cash_tx
+                sale.save(update_fields=['cash_transaction'])
+                print(f"DEBUG: Created cash transaction {cash_tx.id} for sale {sale.id}")
+            except CashAccount.DoesNotExist:
+                print(f"DEBUG: Cash account {cash_account_id} not found. Skipping transaction.")
+            except Exception as e:
+                print(f"DEBUG: Error creating cash transaction: {str(e)}")
+        
+        # ⚡️ FINANCIAL INTEGRATION: Create internal Installment natively
+        if final_status == 'INSTALLMENT':
+            amount_paid = pay.get('amount_paid', 0)
+            if amount_paid and float(amount_paid) > 0:
+                from .logic.installments import create_initial_installment
+                
+                item_descriptions = [str(item.get('description') or item.get('productName') or '') for item in raw_items]
+                notes = ", ".join([d for d in item_descriptions if d])
+                
+                create_initial_installment(
+                    sale=sale,
+                    amount=amount_paid,
+                    user_id=user_id,
+                    branch_id=branch_id,
+                    agency_id=sale.agency_id,
+                    account_id=cash_account_id if link_to_cash else None,
+                    notes=notes
+                )
+        
+        for item in raw_items:
+            qty = to_decimal(item.get('quantity', 0))
+            price = to_decimal(item.get('price', 0))
+            item_sub = price * qty
+            
+            discount_type = item.get('discountType', 'percentage')
+            if discount_type == 'amount':
+                discount_amt = to_decimal(item.get('discountAmount', 0))
+                discount_perc = Decimal('0')
+            else:
+                discount_perc = to_decimal(item.get('discountPercentage', 0))
+                discount_amt = (item_sub * discount_perc) / Decimal('100')
+                
+            SaleItem.objects.create(
+                id=f"si_{uuid.uuid4().hex[:12]}",
+                sale=sale,
+                agency_id=sale.agency_id,
+                branch_id=sale.branch_id,
+                product_id=item.get('productId'),
+                product_name=item.get('productName') or item.get('description') or 'Unknown Product',
+                quantity=qty,
+                unit_price=price,
+                subtotal=item_sub,
+                discount=discount_amt,
+                discount_type=discount_type,
+                discount_percentage=discount_perc,
+                total=item_sub - discount_amt,
+                cost_price=to_decimal(item.get('cost', 0))
+            )
+            
+        if status_val != 'QUOTE':
+            # Ensure we have a valid date even before commit
+            processed_date = getattr(sale, 'date', None) or timezone.now()
+            self._process_inventory(raw_items, branch_id, user_id, sale.receipt_number, processed_date)
+            
+        return sale
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('userId') or request.user.id
+        sale = self._create_sale_from_data(request.data, user_id)
+        return Response(SaleSerializer(sale).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def bulk_sync(self, request):
+        sales_data = request.data
+        if not isinstance(sales_data, list):
+            return Response({"error": "Expected a list of sales"}, status=400)
+            
+        processed = []
+        errors = []
+        
+        for s in sales_data:
+            try:
+                with transaction.atomic():
+                    user_id = s.get('userId') or request.user.id
+                    sale = self._create_sale_from_data(s, user_id)
+                    processed.append({
+                        'localId': s.get('localId'),
+                        'serverId': sale.id,
+                        'receiptNumber': sale.receipt_number
+                    })
+            except Exception as e:
+                errors.append({'localId': s.get('localId'), 'error': str(e)})
+                    
+        return Response({'processed': processed, 'errors': errors})
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        sale = self.get_object()
+        data = request.data
+        items = data.pop('items', [])
+        tax_rate = to_decimal(data.get('taxRate', sale.tax_amount / max(sale.subtotal, Decimal('1')) * 100))
+        branch_id = sale.branch_id
+        user_id = data.get('userId') or request.user.id
+        new_status = data.get('paymentStatus', sale.status)
+        
+        # 🛡️ DATA INTEGRITY: Normalize incoming status strings
+        if new_status == 'Paid': new_status = 'COMPLETED'
+        if new_status == 'NOT PAID': new_status = 'UNPAID'
+        if new_status == 'Installment Sale': new_status = 'INSTALLMENT'
+        
+        old_status = sale.status
+        shipping_cost = to_decimal(data.get('shippingCost', sale.shipping_cost))
+        
+        # 🚀 HEAVY LIFTING: Use centralized logic
+        fin = calculate_sale_financials(items, tax_rate, shipping_cost)
+        pay = resolve_payment_logic(new_status, fin['total_amount'], data.get('amountPaid', sale.amount_paid))
+        
+        # 🛡️ STATUS SYNC: Use resolved status
+        final_status = pay['status']
+        
+        if old_status != 'QUOTE' or final_status != 'QUOTE':
+            old_items = list(sale.items.all())
+            
+            if old_status != 'QUOTE':
+                # Restore old inventory
+                for item in old_items:
+                    if item.product_id:
+                        try:
+                            prod = Product.objects.select_for_update().get(id=item.product_id)
+                            prod.stock += item.quantity
+                            
+                            # 🛡️ SIGNAL CONTEXT
+                            prod._history_user_id = user_id
+                            prod._history_type = 'STOCK_REVERSAL'
+                            prod._history_reason = f"Stock restored due to Sale Update #{sale.receipt_number}"
+                            prod._history_reference_id = sale.receipt_number
+                            prod._history_reference_type = 'SALE_UPDATE'
+
+                            prod.save() # Restore and update timestamp. Signal will log.
+                        except Product.DoesNotExist:
+                            pass
+            
+            if final_status != 'QUOTE':
+                self._process_inventory(items, branch_id, user_id, sale.receipt_number, timezone.now())
+        
+        sale.items.all().delete()
+        for item in items:
+            qty = to_decimal(item.get('quantity', 0))
+            price = to_decimal(item.get('price', 0))
+            item_sub = price * qty
+
+            discount_type = item.get('discountType', 'percentage')
+            if discount_type == 'amount':
+                discount_amt = to_decimal(item.get('discountAmount', 0))
+                discount_perc = Decimal('0')
+            else:
+                discount_perc = to_decimal(item.get('discountPercentage', 0))
+                discount_amt = (item_sub * discount_perc) / Decimal('100')
+
+            import uuid
+            SaleItem.objects.create(
+                id=f"si_{uuid.uuid4().hex[:12]}",
+                sale=sale,
+                agency_id=sale.agency_id,
+                branch_id=sale.branch_id,
+                product_id=item.get('productId'),
+                product_name=item.get('productName') or item.get('description') or 'Unknown Product',
+                quantity=qty,
+                unit_price=price,
+                subtotal=item_sub,
+                discount=discount_amt,
+                discount_type=discount_type,
+                discount_percentage=discount_perc,
+                total=item_sub - discount_amt,
+                cost_price=to_decimal(item.get('cost', 0))
+            )
+
+        sale.status = final_status
+        sale.amount_paid = pay['amount_paid']
+        sale.balance_due = pay['balance_due']
+        if 'customerContact' in data: sale.customer_phone = data['customerContact']
+        if 'customerAddress' in data: sale.customer_address = data['customerAddress']
+        if 'customerName' in data: sale.customer_name = data['customerName']
+        if 'customerId' in data: sale.customer_id = data['customerId']
+        if 'categoryId' in data: sale.category_id = data['categoryId']
+        if 'shippingCost' in data: sale.shipping_cost = fin['shipping_cost']
+        if 'discountReason' in data: sale.discount_reason = data['discountReason']
+        if 'paymentReference' in data: sale.payment_reference = data['paymentReference']
+        if 'cashTransactionId' in data: sale.cash_transaction_id = data['cashTransactionId']
+        
+        sale.subtotal = fin['subtotal']
+        sale.total_amount = fin['total_amount']
+        sale.discount_amount = fin['discount_amount']
+        sale.tax_amount = fin['tax_amount']
+        sale.total_cost = fin['total_cost']
+        sale.profit = fin['profit']
+
+        # ⚡️ FINANCIAL INTEGRATION: Manage Cash Transaction
+        link_to_cash = data.get('linkToCash', False)
+        cash_account_id = data.get('cashAccountId')
+
+        was_linked = sale.cash_transaction_id is not None
+        should_link = link_to_cash and cash_account_id and new_status == 'COMPLETED'
+
+        if should_link:
+            description = f"Sale to {sale.customer_name or 'Valued Customer'} - Receipt #{sale.receipt_number}"
+            if not was_linked:
+                # Create new transaction
+                try:
+                    account = CashAccount.objects.get(id=cash_account_id)
+                    cash_tx = CashTransaction.objects.create(
+                        id=f"ctx_{uuid.uuid4().hex[:12]}",
+                        amount=sale.total_amount,
+                        transaction_type='cash_in',
+                        category='Cash sale',
+                        description=description,
+                        agency_id=sale.agency_id,
+                        branch_id=sale.branch_id,
+                        user_id=user_id,
+                        account=account,
+                        date=sale.date,
+                        reference_id=sale.id,
+                        reference_type='SALE'
+                    )
+                    sale.cash_transaction = cash_tx
+                except CashAccount.DoesNotExist:
+                    print(f"DEBUG: Cash account {cash_account_id} not found. Skipping creation.")
+            else:
+                # Update existing transaction
+                cash_tx = sale.cash_transaction
+                cash_tx.amount = sale.total_amount
+                cash_tx.description = description
+                cash_tx.account_id = cash_account_id
+                # Ensure reference is set if it was missing
+                cash_tx.reference_id = sale.id
+                cash_tx.reference_type = 'SALE'
+                cash_tx.save()
+        elif was_linked:
+            # Delete transaction if it was unlinked or status changed from Paid
+            sale.cash_transaction.delete()
+            sale.cash_transaction = None
+
+        sale.save()
+
+        return Response(SaleSerializer(sale).data)
+
+    @action(detail=True, methods=['get'])
+    def receipt_pdf(self, request, pk=None):
+        sale = self.get_object()
+        buffer = io.BytesIO()
+        report = ReceiptGenerator(buffer, title="Official Receipt")
+        elements = report.generate(sale)
+        return generate_pdf_response(elements, f"Receipt_{sale.receipt_number}", buffer)
+
+    @action(detail=False, methods=['get'])
+    def sales_report_pdf(self, request):
+        branch_id = request.query_params.get('branchId')
+        start_date = request.query_params.get('startDate')
+        end_date = request.query_params.get('endDate')
+        
+        queryset = self.get_queryset()
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+        if start_date:
+            queryset = queryset.filter(date__date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date__date__lte=end_date)
+            
+        queryset = queryset.order_by('-date')
+        
+        if not queryset.exists():
+            return Response({"error": "No sales found for the given criteria"}, status=404)
+            
+        period_label = f"{start_date or 'All'} to {end_date or 'Now'}"
+        buffer = io.BytesIO()
+        report = SalesReportGenerator(buffer, title="Sales Report")
+        elements = report.generate(queryset, period_label)
+        
+        return generate_pdf_response(elements, "Sales_Report", buffer)
+
+    @action(detail=False, methods=['get'])
+    def profit_loss_pdf(self, request):
+        branch_id = request.query_params.get('branchId')
+        start_date_str = request.query_params.get('startDate')
+        end_date_str = request.query_params.get('endDate')
+        
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+
+        try:
+            start_date = parse_datetime(start_date_str) or datetime.combine(parse_date(start_date_str), datetime.min.time())
+            end_date = parse_datetime(end_date_str) or datetime.combine(parse_date(end_date_str), datetime.max.time())
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid dates"}, status=400)
+
+        # 🚀 REFACTORED: Use definitive high-precision ProfitLossEngine
+        from finance.logic.profit_loss_engine import ProfitLossEngine
+        basis = request.query_params.get('basis', 'accrual')
+        engine = ProfitLossEngine(branch_id, start_date, end_date)
+        data = engine.get_full_report(basis=basis)
+
+        from core_app.models import Agency
+        agency = Agency.objects.filter(branches__id=branch_id).first()
+        data['agency'] = agency
+        
+        period_label = f"{start_date.date()} to {end_date.date()}"
+        buffer = io.BytesIO()
+        report = ProfitLossGenerator(buffer, title="Profit & Loss Report")
+        elements = report.generate(data, period_label)
+        
+        return generate_pdf_response(elements, "Profit_Loss_Report", buffer)
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        sale = self.get_object()
+        user_id = request.user.id
+        # Extract deletedReason from query parameters or body
+        deleted_reason = request.query_params.get('deletedReason') or request.data.get('deletedReason')
+
+        from .logic.deletion import process_sale_deletion
+        success, message = process_sale_deletion(sale.id, user_id, deleted_reason=deleted_reason)
+
+        if success:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=['get'])
+    def category_summary(self, request):
+        branch_id = request.query_params.get('branchId')
+        start_date = request.query_params.get('startDate')
+        end_date = request.query_params.get('endDate')
+        
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+            
+        # 1. Base Queryset for Sales
+        sales_qs = self.get_queryset().filter(branch_id=branch_id).exclude(status='QUOTE')
+        if start_date:
+            sales_qs = sales_qs.filter(date__gte=start_date)
+        if end_date:
+            sales_qs = sales_qs.filter(date__lte=end_date)
+            
+        # 2. Get Aggregated Stats for existing sales
+        # 🛡️ FIX: Clear default order_by to prevent Django from adding it to the GROUP BY clause
+        stats = sales_qs.order_by().values('category_id').annotate(
+            revenue=Sum('total_amount'),
+            profit=Sum('profit'),
+            transactions=Count('id')
+        )
+        
+        stats_map = {item['category_id']: item for item in stats}
+        
+        # 3. Get ALL defined categories for this branch
+        all_categories = SaleCategory.objects.filter(branch_id=branch_id)
+        
+        results = []
+        # Add all defined categories (even if 0 sales)
+        for cat in all_categories:
+            cat_stats = stats_map.get(cat.id, {
+                'revenue': 0,
+                'profit': 0,
+                'transactions': 0
+            })
+            results.append({
+                "id": cat.id,
+                "name": cat.name,
+                "revenue": float(cat_stats['revenue'] or 0),
+                "profit": float(cat_stats['profit'] or 0),
+                "transactions": cat_stats['transactions']
+            })
+            
+        # 4. Handle Uncategorized Sales (where category_id is None)
+        if None in stats_map:
+            uncat = stats_map[None]
+            results.append({
+                "id": "uncategorized",
+                "name": "Uncategorized",
+                "revenue": float(uncat['revenue'] or 0),
+                "profit": float(uncat['profit'] or 0),
+                "transactions": uncat['transactions']
+            })
+            
+        # Sort by revenue descending
+        results.sort(key=lambda x: x['revenue'], reverse=True)
+        
+        return Response(results)
+
+    @action(detail=False, methods=['get'])
+    def performance_chart(self, request):
+        branch_id = request.query_params.get('branchId')
+        timeframe = request.query_params.get('timeframe', 'monthly') # daily, weekly, monthly
+        year = request.query_params.get('year', str(timezone.now().year))
+        start_date = request.query_params.get('startDate')
+        end_date = request.query_params.get('endDate')
+
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+
+        # 1. Base Queryset
+        qs = self.get_queryset().filter(branch_id=branch_id).exclude(status='QUOTE')
+        
+        if start_date and end_date:
+            qs = qs.filter(date__range=[start_date, end_date])
+        else:
+            qs = qs.filter(date__year=year)
+
+        # 2. Aggregation by period
+        from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+        
+        trunc_func = TruncMonth
+        if timeframe == 'daily': trunc_func = TruncDay
+        elif timeframe == 'weekly': trunc_func = TruncWeek
+        
+        stats = qs.annotate(period=trunc_func('date')).values('period').annotate(
+            amount=Sum('total_amount')
+        ).order_by('period')
+
+        results = [
+            {
+                "date": item['period'].strftime('%Y-%m-%d'),
+                "amount": float(item['amount'] or 0)
+            }
+            for item in stats
+        ]
+        
+        return Response(results)
+
+    @action(detail=False, methods=['get'])
+    def next_receipt_number(self, request):
+        branch_id = request.query_params.get('branchId')
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+            
+        next_num = get_next_receipt_number(branch_id, increment=False)
+        return Response({"next_number": next_num})
+
+    @action(detail=False, methods=['get'])
+    def period_aggregate(self, request):
+        branch_id = request.query_params.get('branchId')
+        start = request.query_params.get('startDate')
+        end = request.query_params.get('endDate')
+        
+        qs = self.get_queryset().filter(branch_id=branch_id, date__range=[start, end]).exclude(status='QUOTE')
+        total = qs.aggregate(t=Sum('total_amount'))['t'] or 0
+        return Response({"total": total})
+
+    @action(detail=False, methods=['get'])
+    def top_customers(self, request):
+        branch_id = request.query_params.get('branchId')
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+            
+        # Group by customer_name and aggregate
+        # We also want to include customer_id if available (using Min/Max is a trick to get non-grouped field)
+        from django.db.models import Max, F
+        
+        qs = self.get_queryset().filter(branch_id=branch_id).exclude(status='QUOTE')
+        
+        # Group by customer ID or name if no ID
+        stats = qs.values('customer_id', 'customer_name').annotate(
+            totalPurchases=Sum('total_amount'),
+            orderCount=Count('id')
+        ).order_by('-totalPurchases')
+        
+        # Format for frontend
+        results = [
+            {
+                "id": item['customer_id'],
+                "name": item['customer_name'] or "Walking Customer",
+                "totalPurchases": float(item['totalPurchases']),
+                "orderCount": item['orderCount']
+            }
+            for item in stats
+        ]
+        
+        return Response(results)
+
+
+class SaleItemViewSet(viewsets.ModelViewSet):
+    queryset = SaleItem.objects.all()
+    serializer_class = SaleItemSerializer
+    permission_classes = [IsAuthenticated]
+
+from .logic.returns import process_sales_return
+from .logic.installments import (
+    process_installment_payment, 
+    update_installment_payment, 
+    delete_installment_payment
+)
+
+class SalesReturnViewSet(viewsets.ModelViewSet):
+    queryset = SalesReturn.objects.all()
+    serializer_class = SalesReturnSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        branch_id = self.request.query_params.get('branchId') or self.request.user.branch_id
+        qs = super().get_queryset().filter(branch_id=branch_id).select_related('sale', 'user')
+        return qs.order_by('-date')
+
+    def create(self, request, *args, **kwargs):
+        sale_id = request.data.get('sale_id')
+        items_data = request.data.get('items', [])
+        refund_amount = request.data.get('refund_amount', 0)
+        cash_account_id = request.data.get('cash_account_id')
+        reason = request.data.get('reason')
+
+        if not sale_id:
+            return Response({"error": "sale_id is required"}, status=400)
+
+        try:
+            sales_return = process_sales_return(
+                sale_id=sale_id,
+                user_id=request.user.id,
+                items_data=items_data,
+                refund_amount=refund_amount,
+                cash_account_id=cash_account_id,
+                reason=reason
+            )
+            serializer = self.get_serializer(sales_return)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+class InstallmentPaymentViewSet(viewsets.ModelViewSet):
+    queryset = InstallmentPayment.objects.all()
+    serializer_class = InstallmentPaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        sale_id = self.request.query_params.get('saleId')
+        branch_id = self.request.query_params.get('branchId')
+        if sale_id: qs = qs.filter(sale_id=sale_id)
+        if branch_id: qs = qs.filter(branch_id=branch_id)
+        return qs.order_by('-date')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        try:
+            payment = process_installment_payment(
+                sale_id=data.get('saleId'),
+                amount=data.get('amount', 0),
+                user_id=request.user.id,
+                branch_id=data.get('locationId') or request.user.branch_id,
+                agency_id=getattr(request.user, 'agency_id', None),
+                account_id=data.get('accountId'),
+                notes=data.get('notes'),
+                date=data.get('paymentDate') or data.get('date')
+            )
+            return Response(self.get_serializer(payment).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        payment = self.get_object()
+        try:
+            payment = update_installment_payment(
+                payment_id=payment.id,
+                updates=request.data,
+                user_id=request.user.id
+            )
+            return Response(self.get_serializer(payment).data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        payment = self.get_object()
+        try:
+            delete_installment_payment(payment.id)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def link_cash(self, request, pk=None):
+        payment = self.get_object()
+        account_id = request.data.get('accountId')
+        branch_id = request.data.get('locationId')
+        
+        if payment.cash_transaction_id:
+            return Response({"error": "Already linked"}, status=400)
+            
+        from finance.models import CashTransaction
+        sale = payment.sale
+        desc = f"Installment payment for {sale.customer.name if sale.customer else sale.customer_name} - Receipt #{sale.receipt_number}"
+        cash_tx = CashTransaction.objects.create(
+            user_id=request.user.id,
+            branch_id=branch_id,
+            account_id=account_id,
+            amount=payment.amount,
+            transaction_type='cash_in',
+            category='Installment payment',
+            description=desc,
+            date=payment.date,
+            reference_id=payment.id,
+            reference_type='INSTALLMENT'
+        )
+        payment.cash_transaction = cash_tx
+        payment.save(update_fields=['cash_transaction'])
+        return Response({"status": "linked"})
+
+    @action(detail=True, methods=['post'])
+    def unlink_cash(self, request, pk=None):
+        payment = self.get_object()
+        if payment.cash_transaction_id:
+            payment.cash_transaction.delete()
+            payment.cash_transaction = None
+            payment.save(update_fields=['cash_transaction'])
+        return Response({"status": "unlinked"})

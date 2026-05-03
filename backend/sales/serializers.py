@@ -1,0 +1,81 @@
+from rest_framework import serializers
+from .models import SalesGoal, SaleCategory, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
+
+class SalesReturnItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    refund_amount = serializers.FloatField()
+    
+    class Meta:
+        model = SalesReturnItem
+        fields = '__all__'
+
+class SalesReturnSerializer(serializers.ModelSerializer):
+    items = SalesReturnItemSerializer(many=True, read_only=True)
+    sale_receipt_number = serializers.CharField(source='sale.receipt_number', read_only=True)
+    total_refund_amount = serializers.FloatField()
+    
+    class Meta:
+        model = SalesReturn
+        fields = '__all__'
+
+class SalesGoalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalesGoal
+        fields = '__all__'
+
+class SaleCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleCategory
+        fields = '__all__'
+
+class SaleItemSerializer(serializers.ModelSerializer):
+    unit_price = serializers.FloatField()
+    subtotal = serializers.FloatField()
+    total = serializers.FloatField()
+    cost_price = serializers.FloatField()
+    
+    class Meta:
+        model = SaleItem
+        fields = '__all__'
+
+class InstallmentPaymentSerializer(serializers.ModelSerializer):
+    amount = serializers.FloatField()
+    
+    class Meta:
+        model = InstallmentPayment
+        fields = '__all__'
+
+class SaleSerializer(serializers.ModelSerializer):
+    items = SaleItemSerializer(many=True, read_only=True)
+    installments = InstallmentPaymentSerializer(many=True, read_only=True)
+    receipt_url = serializers.SerializerMethodField()
+    
+    cash_account_name = serializers.CharField(source='cash_transaction.account.name', read_only=True, default=None)
+    
+    subtotal = serializers.FloatField()
+    discount_amount = serializers.FloatField()
+    tax_amount = serializers.FloatField()
+    total_amount = serializers.FloatField()
+    total_cost = serializers.FloatField()
+    profit = serializers.FloatField()
+    amount_paid = serializers.FloatField()
+    balance_due = serializers.FloatField()
+    
+    class Meta:
+        model = Sale
+        fields = '__all__'
+
+    def get_receipt_url(self, obj):
+        request = self.context.get('request')
+        if request and obj.id:
+            # We assume the standard DRF routing for the receipt_pdf action
+            # /api/sales/sales/{id}/receipt_pdf/
+            from django.urls import reverse
+            try:
+                return request.build_absolute_uri(
+                    reverse('sale-receipt-pdf', kwargs={'pk': obj.pk})
+                )
+            except:
+                # Fallback to manual string construction if reverse fails
+                return request.build_absolute_uri(f"/api/sales/sales/{obj.pk}/receipt_pdf/")
+        return None
