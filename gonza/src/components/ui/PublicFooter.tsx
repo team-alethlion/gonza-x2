@@ -28,7 +28,7 @@ export function PublicFooter() {
             <FooterBrand
               as={RouterLink}
               href="/"
-              src="/favicon.svg"
+              src="/icon.png"
               alt={`${CONFIG.APP.NAME} Logo`}
               name={CONFIG.APP.NAME}
               className="dark:text-white"
