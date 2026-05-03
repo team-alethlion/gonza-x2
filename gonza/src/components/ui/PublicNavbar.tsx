@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -9,17 +8,20 @@ import {
   NavbarCollapse,
   NavbarLink,
   NavbarToggle,
-  useThemeMode,
 } from "flowbite-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
 import { useThemeStore } from "../../store/useThemeStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { UserAvatar } from "./UserAvatar";
 
 export function PublicNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { mode, toggleMode } = useThemeStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const [isSticky, setIsSticky] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,11 @@ export function PublicNavbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/public");
+  };
 
   return (
     <div className={`${isSticky ? 'sticky top-0 z-50 w-full transition-all duration-300' : 'relative'}`}>
@@ -64,38 +71,47 @@ export function PublicNavbar() {
             <HiMoon className="h-5 w-5" />
           )}
         </button>
-        <Dropdown
-          arrowIcon={false}
-          inline
-          label={
-            <Avatar
-              alt="User settings"
-              img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-              rounded
-              size="sm"
-            />
-          }
-        >
-          <DropdownHeader>
-            <div className="flex flex-col gap-1">
-              <span className="block text-sm font-bold text-purple-600 dark:text-purple-400">
-                Main Branch
-              </span>
-              <span className="block text-sm">Bonnie Green</span>
-              <span className="block truncate text-sm font-medium">
-                name@flowbite.com
-              </span>
-            </div>
-          </DropdownHeader>
-          <DropdownItem as={RouterLink} href="/agency">
-            Go to Dashboard
-          </DropdownItem>
-          <DropdownItem as={RouterLink} href="/onboarding">
-            Manage Businesses
-          </DropdownItem>
-          <DropdownDivider />
-          <DropdownItem href="/logout">Sign out</DropdownItem>
-        </Dropdown>
+
+        {isAuthenticated ? (
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={
+              <UserAvatar 
+                name={user?.first_name || user?.email} 
+                src={user?.image}
+                size={32}
+              />
+            }
+          >
+            <DropdownHeader>
+              <div className="flex flex-col gap-1">
+                <span className="block text-sm font-bold text-[#f05a2b] dark:text-[#9b87f5]">
+                  {user?.agency?.name || "Main Branch"}
+                </span>
+                <span className="block text-sm">
+                  {user?.first_name} {user?.last_name}
+                </span>
+                <span className="block truncate text-sm font-medium">
+                  {user?.email}
+                </span>
+              </div>
+            </DropdownHeader>
+            <DropdownItem as={RouterLink} href="/agency">
+              Go to Dashboard
+            </DropdownItem>
+            <DropdownItem as={RouterLink} href="/onboarding">
+              Manage Businesses
+            </DropdownItem>
+            <DropdownDivider />
+            <DropdownItem onClick={handleLogout}>Sign out</DropdownItem>
+          </Dropdown>
+        ) : (
+          <div className="flex items-center">
+             <UserAvatar size={32} />
+          </div>
+        )}
+        
         <NavbarToggle />
       </div>
       <NavbarCollapse>
@@ -120,13 +136,17 @@ export function PublicNavbar() {
         >
           Pricing
         </NavbarLink>
-        <NavbarLink
-          as={RouterLink}
-          href="/auth/signup"
-          active={location.pathname === "/auth/signup"}
-        >
-          Get Started
-        </NavbarLink>      </NavbarCollapse>
+        
+        {!isAuthenticated && (
+          <NavbarLink
+            as={RouterLink}
+            href="/auth/signup"
+            active={location.pathname === "/auth/signup"}
+          >
+            Get Started
+          </NavbarLink>
+        )}
+      </NavbarCollapse>
     </Navbar>
   </div>
   );

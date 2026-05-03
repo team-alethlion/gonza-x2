@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
@@ -9,14 +8,24 @@ import {
 } from "flowbite-react";
 import { HiMenuAlt2, HiMoon, HiSun } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
+import { useNavigate } from "react-router-dom";
 import { useThemeStore } from "../../store/useThemeStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { UserAvatar } from "./UserAvatar";
 
 interface AgencyNavbarProps {
   onToggleSidebar?: () => void;
 }
 
 export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
+  const navigate = useNavigate();
   const { mode, toggleMode } = useThemeStore();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/public");
+  };
 
   return (
     <Navbar fluid rounded className="relative">
@@ -34,12 +43,12 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
         <NavbarBrand as={RouterLink} href="/agency">
           <img
-            src="/favicon.svg"
-            className="mr-3 h-6 sm:h-9"
+            src="/icon.png"
+            className="mr-3 h-6 sm:h-9 rounded-lg"
             alt="Agency Logo"
           />
           <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
-            Agency Name
+            {user?.agency?.name || "Gonza Systems"}
           </span>
         </NavbarBrand>
       </div>
@@ -61,22 +70,23 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
           arrowIcon={false}
           inline
           label={
-            <Avatar
-              alt="User settings"
-              img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-              rounded
-              size="sm"
+            <UserAvatar 
+              name={user?.first_name || user?.email} 
+              src={user?.image}
+              size={32}
             />
           }
         >
           <DropdownHeader>
             <div className="flex flex-col gap-1">
-              <span className="block text-sm font-bold text-purple-600 dark:text-purple-400">
-                Main Branch
+              <span className="block text-sm font-bold text-[#f05a2b] dark:text-[#9b87f5]">
+                {user?.branch?.name || "Main Branch"}
               </span>
-              <span className="block text-sm">Bonnie Green</span>
+              <span className="block text-sm">
+                {user?.first_name} {user?.last_name}
+              </span>
               <span className="block truncate text-sm font-medium">
-                name@flowbite.com
+                {user?.email}
               </span>
             </div>
           </DropdownHeader>
@@ -90,7 +100,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
             Settings
           </DropdownItem>
           <DropdownDivider />
-          <DropdownItem href="/logout">Sign out</DropdownItem>
+          <DropdownItem onClick={handleLogout}>Sign out</DropdownItem>
         </Dropdown>
       </div>
     </Navbar>

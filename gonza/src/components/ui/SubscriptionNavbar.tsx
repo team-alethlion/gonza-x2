@@ -1,31 +1,37 @@
 import {
-  Avatar,
   Dropdown,
   DropdownDivider,
   DropdownHeader,
   DropdownItem,
   Navbar,
   NavbarBrand,
-  NavbarCollapse,
-  NavbarLink,
   NavbarToggle,
 } from "flowbite-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { HiMoon, HiSun } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
 import { useThemeStore } from "../../store/useThemeStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { UserAvatar } from "./UserAvatar";
 
 export function SubscriptionNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { mode, toggleMode } = useThemeStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/public");
+  };
 
   return (
     <Navbar fluid rounded>
       <NavbarBrand as={RouterLink} href="/">
         <img
-          src="/favicon.svg"
-          className="mr-3 h-6 sm:h-9"
-          alt="Flowbite React Logo"
+          src="/icon.png"
+          className="mr-3 h-6 sm:h-9 rounded-lg"
+          alt="Gonza Logo"
         />
         <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
           Gonza Plans
@@ -43,38 +49,45 @@ export function SubscriptionNavbar() {
             <HiMoon className="h-5 w-5" />
           )}
         </button>
-        <Dropdown
-          arrowIcon={false}
-          inline
-          label={
-            <Avatar
-              alt="User settings"
-              img="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
-              rounded
-              size="sm"
-            />
-          }
-        >
-          <DropdownHeader>
-            <div className="flex flex-col gap-1">
-              <span className="block text-sm font-bold text-purple-600 dark:text-purple-400">
-                Main Branch
-              </span>
-              <span className="block text-sm">Bonnie Green</span>
-              <span className="block truncate text-sm font-medium">
-                name@flowbite.com
-              </span>
-            </div>
-          </DropdownHeader>
-          <DropdownItem as={RouterLink} href="/agency">
-            Back to Dashboard
-          </DropdownItem>
-          <DropdownItem as={RouterLink} href="/onboarding">
-            Manage Businesses
-          </DropdownItem>
-          <DropdownDivider />
-          <DropdownItem href="/logout">Sign out</DropdownItem>
-        </Dropdown>
+
+        {isAuthenticated ? (
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={
+              <UserAvatar 
+                name={user?.first_name || user?.email} 
+                src={user?.image}
+                size={32}
+              />
+            }
+          >
+            <DropdownHeader>
+              <div className="flex flex-col gap-1">
+                <span className="block text-sm font-bold text-[#f05a2b] dark:text-[#9b87f5]">
+                  {user?.agency?.name || "Main Branch"}
+                </span>
+                <span className="block text-sm">
+                  {user?.first_name} {user?.last_name}
+                </span>
+                <span className="block truncate text-sm font-medium">
+                  {user?.email}
+                </span>
+              </div>
+            </DropdownHeader>
+            <DropdownItem as={RouterLink} href="/agency">
+              Back to Dashboard
+            </DropdownItem>
+            <DropdownItem as={RouterLink} href="/onboarding">
+              Manage Businesses
+            </DropdownItem>
+            <DropdownDivider />
+            <DropdownItem onClick={handleLogout}>Sign out</DropdownItem>
+          </Dropdown>
+        ) : (
+          <UserAvatar size={32} />
+        )}
+        
         <NavbarToggle />
       </div>
     </Navbar>

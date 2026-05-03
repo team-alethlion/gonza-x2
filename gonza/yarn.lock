@@ -1187,6 +1187,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"boring-avatars@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "boring-avatars@npm:2.0.4"
+  peerDependencies:
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+  checksum: 10c0/9a55cce3d59aff2dda20b6f972e91280892ed3579b2ff5fca8ae5b00425066b867d7ad7ea65e1932463b6025b5f7b7ce5c85b7024c7602c8aa4a6e69dd5f1c6c
+  languageName: node
+  linkType: hard
+
 "brace-expansion@npm:^5.0.5":
   version: 5.0.5
   resolution: "brace-expansion@npm:5.0.5"
@@ -1747,6 +1757,7 @@ __metadata:
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
+    boring-avatars: "npm:^2.0.4"
     dexie: "npm:^4.4.2"
     dexie-react-hooks: "npm:^4.4.0"
     eslint: "npm:^10.2.1"
