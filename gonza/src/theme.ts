@@ -13,24 +13,35 @@ export const theme = createTheme({
   },
   navbar: {
     root: {
-      base: "bg-white px-2 py-2.5 dark:border-space-indigo-800 dark:bg-prussian-blue-900 sm:px-4 border-b border-gray-100 shadow-sm",
+      base: "bg-white px-2 py-1.5 dark:border-white/5 dark:bg-prussian-blue-900 sm:px-4 border-b border-gray-100 shadow-none",
     },
     link: {
       active: {
         on: "bg-brand-primary text-white md:bg-transparent md:text-brand-primary md:dark:text-brand-accent",
-        off: "border-b border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-space-indigo-800 dark:text-gray-400 dark:hover:bg-space-indigo-800 dark:hover:text-white md:border-0 md:hover:bg-transparent md:hover:text-brand-primary md:dark:hover:bg-transparent md:dark:hover:text-brand-accent",
+        off: "border-b border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-white/5 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white md:border-0 md:hover:bg-transparent md:hover:text-brand-primary md:dark:hover:bg-transparent md:dark:hover:text-brand-accent",
       },
     },
   },
   sidebar: {
     root: {
-      base: "h-full border-r border-gray-100 dark:border-space-indigo-800",
+      base: "h-full border-r border-gray-100 dark:border-white/5",
       inner:
-        "h-full flex flex-col overflow-hidden bg-white px-3 py-4 dark:bg-prussian-blue-900",
+        "h-full flex flex-col overflow-hidden bg-white px-3 py-2 dark:bg-prussian-blue-900",
+      collapsed: {
+        on: "w-16",
+        off: "w-60",
+      },
     },
     item: {
-      active: "bg-brand-soft text-brand-primary dark:bg-space-indigo-800 dark:text-brand-accent",
-      base: "flex items-center justify-center rounded-lg p-2 text-base font-normal text-gray-900 hover:bg-brand-soft dark:text-white dark:hover:bg-space-indigo-800 group",
+      active: "bg-brand-soft text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent",
+      base: "flex items-center justify-center rounded-lg py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5 group transition-all duration-200",
+      icon: {
+        base: "h-5 w-5 flex-shrink-0 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white",
+        active: "text-brand-primary dark:text-brand-accent",
+      },
+    },
+    itemGroup: {
+      base: "mt-4 space-y-1 border-t border-gray-100 pt-4 first:mt-0 first:border-t-0 first:pt-0 dark:border-white/5",
     },
   },
   card: {
