@@ -3,10 +3,14 @@ import { Button } from "flowbite-react";
 import {
   HiOutlineUserAdd,
   HiOutlineLogin,
+  HiOutlineArrowRight,
 } from "react-icons/hi";
 import { RouterLink } from "../ui/RouterLink";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const HeroCentered = () => {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <section className="bg-white dark:bg-gray-900">
       <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
@@ -43,14 +47,23 @@ const HeroCentered = () => {
         </p>
 
         <div className="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-          <Button as={RouterLink} href="/auth/signup" size="xl" color="primary">
-            Signup for free
-            <HiOutlineUserAdd className="ml-2 h-5 w-5" />
-          </Button>
-          <Button as={RouterLink} href="/auth/login" size="xl" color="secondary">
-            <HiOutlineLogin className="mr-2 h-5 w-5" />
-            Sign in
-          </Button>
+          {isAuthenticated ? (
+            <Button as={RouterLink} href="/agency" size="xl" color="primary">
+              Go to Dashboard
+              <HiOutlineArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          ) : (
+            <>
+              <Button as={RouterLink} href="/auth/signup" size="xl" color="primary">
+                Signup for free
+                <HiOutlineUserAdd className="ml-2 h-5 w-5" />
+              </Button>
+              <Button as={RouterLink} href="/auth/login" size="xl" color="secondary">
+                <HiOutlineLogin className="mr-2 h-5 w-5" />
+                Sign in
+              </Button>
+            </>
+          )}
         </div>
         <div>No credit card required · Cloud-based · Instant setup</div>
       </div>

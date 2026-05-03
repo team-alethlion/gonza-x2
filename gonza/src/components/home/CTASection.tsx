@@ -1,10 +1,13 @@
 import React from "react";
 import { Button } from "flowbite-react";
-import { HiOutlineUserAdd, HiOutlinePhone } from "react-icons/hi";
+import { HiOutlineUserAdd, HiOutlinePhone, HiOutlineArrowRight } from "react-icons/hi";
 import { RouterLink } from "../ui/RouterLink";
 import { CONFIG } from "../../config";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const CTASection = () => {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <section className="bg-white dark:bg-[#0B1326] py-16 lg:py-24 transition-colors duration-300">
       <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
@@ -16,15 +19,27 @@ const CTASection = () => {
           Join hundreds of businesses already running smarter with Gonza Systems.
         </p>
         <div className="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-          <Button
-            as={RouterLink}
-            href="/auth/signup"
-            size="xl"
-            color="primary"
-            className="transition-transform hover:scale-105">
-            Signup for free
-            <HiOutlineUserAdd className="ml-2 h-5 w-5" />
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              as={RouterLink}
+              href="/agency"
+              size="xl"
+              color="primary"
+              className="transition-transform hover:scale-105">
+              Go to Dashboard
+              <HiOutlineArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          ) : (
+            <Button
+              as={RouterLink}
+              href="/auth/signup"
+              size="xl"
+              color="primary"
+              className="transition-transform hover:scale-105">
+              Signup for free
+              <HiOutlineUserAdd className="ml-2 h-5 w-5" />
+            </Button>
+          )}
           <Button
             href={`tel:${CONFIG.APP.SUPPORT_PHONE}`}
             size="xl"

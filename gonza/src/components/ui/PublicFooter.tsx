@@ -18,8 +18,11 @@ import {
 } from "react-icons/bs";
 import { RouterLink } from "./RouterLink";
 import { CONFIG } from "../../config";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export function PublicFooter() {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <Footer container className="rounded-none border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
       <div className="w-full max-w-screen-xl mx-auto">
@@ -44,7 +47,9 @@ export function PublicFooter() {
               <FooterLinkGroup col>
                 <FooterLink as={RouterLink} href="/public">Home</FooterLink>
                 <FooterLink as={RouterLink} href="/subscription">Pricing</FooterLink>
-                <FooterLink as={RouterLink} href="/auth/signup">Get Started</FooterLink>
+                {!isAuthenticated && (
+                  <FooterLink as={RouterLink} href="/auth/signup">Get Started</FooterLink>
+                )}
               </FooterLinkGroup>
             </div>
             <div>
