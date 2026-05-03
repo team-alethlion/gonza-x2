@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Card, Badge, ToggleSwitch } from "flowbite-react";
-import { HiCheck, HiX, HiLightningBolt, HiStar, HiOfficeBuilding } from "react-icons/hi";
+import { HiCheck, HiX, HiLightningBolt, HiInformationCircle } from "react-icons/hi";
 import { PLANS } from "./plans";
 import type { Plan } from "./plans";
 import { useSubscriptionStore } from "../../store/useSubscriptionStore";
@@ -26,15 +26,22 @@ const SubscriptionHome = () => {
     // 1. None state
     if (status === "none") {
       return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <Button 
             color="primary"
+            size="lg"
+            className="w-full"
             onClick={() => subscribe(plan.id, cycle)}
           >
             Subscribe Now
           </Button>
           {plan.hasTrial && !hasUsedTrial && (
-            <Button color="secondary" onClick={() => startTrial(plan.id)}>
+            <Button 
+              color="light" 
+              size="lg"
+              className="w-full border-2 border-gray-200 dark:border-gray-700"
+              onClick={() => startTrial(plan.id)}
+            >
               Start 7-day Free Trial
             </Button>
           )}
@@ -46,21 +53,19 @@ const SubscriptionHome = () => {
     if (status === "active") {
       if (isCurrentPlan) {
         return (
-          <Button color="gray" disabled className="cursor-not-allowed">
+          <Button color="gray" disabled className="w-full cursor-not-allowed">
             Current Plan
           </Button>
         );
       }
       
-      // Upgrade logic (simply assuming any higher plan or different plan is an upgrade for now)
-      // Standard -> Premium -> Enterprise
       const planOrder = ["standard", "premium", "enterprise"];
       const currentIdx = planOrder.indexOf(currentPlanId || "");
       const targetIdx = planOrder.indexOf(plan.id);
 
       if (targetIdx > currentIdx) {
         return (
-          <Button color="secondary" onClick={() => upgrade(plan.id)}>
+          <Button color="secondary" size="lg" className="w-full" onClick={() => upgrade(plan.id)}>
             <HiLightningBolt className="mr-2 h-5 w-5" />
             Upgrade Plan
           </Button>
@@ -68,7 +73,7 @@ const SubscriptionHome = () => {
       }
       
       return (
-        <Button color="primary" onClick={() => subscribe(plan.id, cycle)}>
+        <Button color="primary" size="lg" className="w-full" onClick={() => subscribe(plan.id, cycle)}>
           Switch to this Plan
         </Button>
       );
@@ -78,7 +83,7 @@ const SubscriptionHome = () => {
     if (status === "expired") {
       if (isCurrentPlan) {
         return (
-          <Button color="failure" onClick={() => reactivate()}>
+          <Button color="failure" size="lg" className="w-full" onClick={() => reactivate()}>
             Reactivate Plan
           </Button>
         );
@@ -86,6 +91,8 @@ const SubscriptionHome = () => {
       return (
         <Button 
           color="primary"
+          size="lg"
+          className="w-full"
           onClick={() => subscribe(plan.id, cycle)}
         >
           Subscribe
@@ -96,179 +103,112 @@ const SubscriptionHome = () => {
     return null;
   };
 
-  const getPlanIcon = (planId: string) => {
-    switch (planId) {
-      case "standard": return <HiLightningBolt className="h-8 w-8 text-[#252861] dark:text-[#80ced7]" />;
-      case "premium": return <HiStar className="h-8 w-8 text-[#f05a2b]" />;
-      case "enterprise": return <HiOfficeBuilding className="h-8 w-8 text-[#252861] dark:text-[#80ced7]" />;
-      default: return null;
-    }
-  };
-
   return (
-    <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
-      <div className="mx-auto max-w-screen-md text-center mb-8 lg:mb-12">
-        <h2 className="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">
+    <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6 transition-colors duration-300">
+      <div className="mx-auto max-w-screen-md text-center mb-12 lg:mb-16">
+        <h2 className="mb-4 text-4xl tracking-tight font-extrabold text-[#252861] dark:text-white sm:text-5xl">
           Choose Your Agency Plan
         </h2>
-        <p className="mb-5 font-light text-gray-500 sm:text-xl dark:text-gray-400">
-          Scale your inventory management with professional tools designed for growth.
+        <p className="mb-8 font-light text-gray-500 sm:text-xl dark:text-gray-400 max-w-2xl mx-auto">
+          Scale your inventory management with professional tools designed for the modern African entrepreneur.
         </p>
         
         {status !== "none" && (
-          <div className="mb-8">
-            <Badge color={status === "active" ? "success" : "failure"} size="lg" className="inline-flex items-center px-4 py-2">
+          <div className="mb-10">
+            <Badge 
+              color={status === "active" ? "success" : "failure"} 
+              size="lg" 
+              className="inline-flex items-center px-6 py-2.5 rounded-full font-bold uppercase tracking-wider"
+            >
               {status === "active" ? "Active Subscription" : "Subscription Expired"}
             </Badge>
           </div>
         )}
 
-        <div className="flex justify-center items-center gap-4 mb-8">
-          <span className={`text-sm ${!isYearly ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500'}`}>Monthly</span>
-          <ToggleSwitch checked={isYearly} onChange={setIsYearly} />
-          <span className={`text-sm ${isYearly ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+        <div className="flex justify-center items-center gap-6 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 inline-flex mx-auto">
+          <span className={`text-sm font-semibold ${!isYearly ? 'text-[#252861] dark:text-[#9b87f5]' : 'text-gray-500'}`}>Monthly</span>
+          <ToggleSwitch checked={isYearly} onChange={setIsYearly} color="primary" />
+          <span className={`text-sm font-semibold ${isYearly ? 'text-[#252861] dark:text-[#9b87f5]' : 'text-gray-500'}`}>
             Yearly <Badge color="success" className="ml-2">Save ~10%</Badge>
           </span>
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-6 lg:gap-10">
+      <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
         {PLANS.map((plan) => (
-          <Card key={plan.id} className={`max-w-sm w-full flex flex-col ${currentPlanId === plan.id ? 'ring-2 ring-[#252861] dark:ring-[#80ced7]' : ''}`}>
-            <h5 className="mb-4 text-xl font-medium text-gray-500 dark:text-gray-400">
-              {plan.name}
-            </h5>
-            <div className="flex justify-center mb-4">
-              {getPlanIcon(plan.id)}
+          <Card 
+            key={plan.id} 
+            className={`flex flex-col relative transition-all duration-300 hover:shadow-xl dark:bg-white/5 border-gray-100 dark:border-white/10 ${
+              currentPlanId === plan.id ? 'ring-2 ring-[#f05a2b] scale-105 z-10' : ''
+            }`}
+          >
+            {currentPlanId === plan.id && (
+              <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#f05a2b] text-white text-xs font-bold px-4 py-1 rounded-full uppercase">
+                Active Plan
+              </span>
+            )}
+            <div className="mb-6">
+              <h5 className="mb-2 text-2xl font-bold text-[#252861] dark:text-white">
+                {plan.name}
+              </h5>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Perfect for {plan.id === 'enterprise' ? 'large scale operations' : 'growing businesses'}
+              </p>
             </div>
-            <div className="flex items-baseline text-gray-900 dark:text-white">
-              <span className="text-3xl font-semibold">UGX</span>
-              <span className="text-5xl font-extrabold tracking-tight">
+            
+            <div className="flex items-baseline text-[#252861] dark:text-white">
+              <span className="text-2xl font-semibold">UGX</span>
+              <span className="text-6xl font-black tracking-tight mx-1">
                 {isYearly
                   ? (plan.priceYear / 1000).toLocaleString()
                   : (plan.priceMonth / 1000).toLocaleString()}
               </span>
-              <span className="ml-1 text-4xl font-bold">K</span>
+              <span className="text-4xl font-bold">K</span>
               <span className="ml-1 text-xl font-normal text-gray-500 dark:text-gray-400">
                 /{isYearly ? "year" : "month"}
               </span>
             </div>
             
-            <ul className="my-7 space-y-5 flex-1">
-              <li className="flex space-x-3">
-                <svg
-                  className="h-5 w-5 shrink-0 text-[#252861] dark:text-[#80ced7]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">
-                  {plan.limits.users === "unlimited" ? "Unlimited" : plan.limits.users} user profiles
+            <ul className="my-10 space-y-4 flex-1">
+              <li className="flex items-center space-x-3">
+                <HiCheck className="h-5 w-5 shrink-0 text-[#f05a2b]" />
+                <span className="text-base font-normal text-gray-600 dark:text-gray-300">
+                  <strong className="text-gray-900 dark:text-white font-bold">{plan.limits.users === "unlimited" ? "Unlimited" : plan.limits.users}</strong> user profiles
                 </span>
               </li>
-              <li className="flex space-x-3">
-                <svg
-                  className="h-5 w-5 shrink-0 text-[#252861] dark:text-[#80ced7]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">
-                  {plan.limits.sales === "unlimited" ? "Unlimited" : plan.limits.sales} sales per month
+              <li className="flex items-center space-x-3">
+                <HiCheck className="h-5 w-5 shrink-0 text-[#f05a2b]" />
+                <span className="text-base font-normal text-gray-600 dark:text-gray-300">
+                  <strong className="text-gray-900 dark:text-white font-bold">{plan.limits.sales === "unlimited" ? "Unlimited" : plan.limits.sales}</strong> monthly sales
                 </span>
               </li>
-              <li className="flex space-x-3">
-                <svg
-                  className="h-5 w-5 shrink-0 text-[#252861] dark:text-[#80ced7]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">
-                  {plan.limits.products === "unlimited" ? "Unlimited" : plan.limits.products} products
-                </span>
-              </li>
-              <li className="flex space-x-3">
-                <svg
-                  className="h-5 w-5 shrink-0 text-[#252861] dark:text-[#80ced7]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">
-                  {plan.limits.customers === "unlimited" ? "Unlimited" : plan.limits.customers} new customers
+              <li className="flex items-center space-x-3">
+                <HiCheck className="h-5 w-5 shrink-0 text-[#f05a2b]" />
+                <span className="text-base font-normal text-gray-600 dark:text-gray-300">
+                  <strong className="text-gray-900 dark:text-white font-bold">{plan.limits.products === "unlimited" ? "Unlimited" : plan.limits.products}</strong> inventory items
                 </span>
               </li>
               {plan.features.map((feature, idx) => (
-                <li key={idx} className="flex space-x-3">
-                  <svg
-                    className="h-5 w-5 shrink-0 text-[#252861] dark:text-[#80ced7]"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">
+                <li key={idx} className="flex items-center space-x-3">
+                  <HiCheck className="h-5 w-5 shrink-0 text-[#f05a2b]" />
+                  <span className="text-base font-normal text-gray-600 dark:text-gray-300">
                     {feature}
                   </span>
                 </li>
               ))}
-              {/* Optional: Add grayed out features for lower plans if desired */}
-              {plan.id === "standard" && (
-                <li className="flex space-x-3 line-through decoration-gray-500">
-                  <svg
-                    className="h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="text-base font-normal leading-tight text-gray-500">
-                    Priority Support
-                  </span>
-                </li>
-              )}
             </ul>
             
-            <div className="mt-6">
+            <div className="mt-2 pt-6 border-t border-gray-100 dark:border-white/5">
               {getButtonProps(plan)}
             </div>
           </Card>
         ))}
+      </div>
+      
+      <div className="mt-16 text-center">
+        <p className="text-gray-500 dark:text-gray-400">
+          Need a custom solution? <a href="mailto:gonzasystems@gmail.com" className="text-[#f05a2b] font-bold hover:underline">Contact our sales team</a>
+        </p>
       </div>
     </div>
   );
