@@ -14,6 +14,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { getApiUrl, CONFIG } from "../../config";
 import { NumberFormatter } from "../../utils/formatters";
 import AnalysisGraph from "../../components/dashboard/AnalysisGraph";
+import UpcommingCalendar from "../../components/dashboard/UpcommingCalendar";
 
 const AgencyHome = () => {
   const { user, token } = useAuthStore();
@@ -276,6 +277,9 @@ const AgencyHome = () => {
 
         {/* Analysis Section */}
         <AnalysisGraph />
+
+        {/* Calendar Section */}
+        <UpcommingCalendar />
       </div>
     </div>
   );

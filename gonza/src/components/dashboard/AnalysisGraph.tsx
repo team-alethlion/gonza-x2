@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
-import { Card, Button, Spinner } from "flowbite-react";
+import { Card, Button, Spinner, Select } from "flowbite-react";
 import { HiOutlineChartBar } from "react-icons/hi";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getApiUrl, CONFIG } from "../../config";
@@ -11,11 +11,39 @@ const AnalysisGraph = () => {
   const { user, token } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">("monthly");
-  const [chartData, setChartData] = useState<{ dates: string[]; amounts: number[] }>({
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [chartData, setChartData] = useState<{
+    dates: string[];
+    sales: number[];
+    expenses: number[];
+  }>({
     dates: [],
-    amounts: [],
+    sales: [],
+    expenses: [],
   });
 
+  // Fetch available years
+  useEffect(() => {
+    const fetchYears = async () => {
+      if (!user?.branch?.id || !token) return;
+      try {
+        const url = getApiUrl(`${CONFIG.API.SALES.BASE}performance_years/`);
+        const res = await fetch(`${url}?branchId=${user.branch.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const years = await res.json();
+          setAvailableYears(years);
+        }
+      } catch (error) {
+        console.error("Failed to fetch available years:", error);
+      }
+    };
+    fetchYears();
+  }, [user?.branch?.id, token]);
+
+  // Fetch chart data
   useEffect(() => {
     const fetchChartData = async () => {
       if (!user?.branch?.id || !token) return;
@@ -26,6 +54,7 @@ const AnalysisGraph = () => {
         const params = new URLSearchParams({
           branchId: user.branch.id,
           timeframe: timeframe,
+          year: selectedYear,
         });
 
         const res = await fetch(`${url}?${params}`, {
@@ -37,12 +66,19 @@ const AnalysisGraph = () => {
           const dates = data.map((item: any) => {
             const d = new Date(item.date);
             if (timeframe === "monthly") {
-              return d.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
+              return d.toLocaleDateString("en-US", {
+                month: "short",
+                year: "2-digit",
+              });
             }
-            return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+            return d.toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+            });
           });
-          const amounts = data.map((item: any) => item.amount);
-          setChartData({ dates, amounts });
+          const sales = data.map((item: any) => item.sales);
+          const expenses = data.map((item: any) => item.expenses);
+          setChartData({ dates, sales, expenses });
         }
       } catch (error) {
         console.error("Failed to fetch performance chart:", error);
@@ -52,7 +88,7 @@ const AnalysisGraph = () => {
     };
 
     fetchChartData();
-  }, [user?.branch?.id, token, timeframe]);
+  }, [user?.branch?.id, token, timeframe, selectedYear]);
 
   const options: any = {
     chart: {
@@ -113,6 +149,15 @@ const AnalysisGraph = () => {
         formatter: (val: number) => NumberFormatter.formatCurrency(val),
       },
     },
+    legend: {
+      position: "top",
+      horizontalAlign: "right",
+      fontSize: "12px",
+      fontWeight: 600,
+      labels: {
+        colors: "#9ca3af",
+      },
+    },
     theme: {
       mode: "light",
     },
@@ -128,8 +173,12 @@ const AnalysisGraph = () => {
 
   const series = [
     {
-      name: "Sales Volume",
-      data: chartData.amounts,
+      name: "Sales",
+      data: chartData.sales,
+    },
+    {
+      name: "Expenses",
+      data: chartData.expenses,
     },
   ];
 
@@ -145,49 +194,70 @@ const AnalysisGraph = () => {
               Performance Analysis
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Visualize your sales trends over time
+              Visualize your sales and expenses over time
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-lg">
-          <Button
-            size="xs"
-            color={timeframe === "daily" ? "primary" : "gray"}
-            pill={timeframe !== "daily"}
-            onClick={() => setTimeframe("daily")}
-            className={`text-[10px] font-bold uppercase tracking-wider ${
-              timeframe === "daily" ? "" : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-            }`}
+        <div className="w-32">
+          <Select
+            id="years"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            required
+            className="cursor-pointer"
+            size="sm"
           >
-            Daily
-          </Button>
-          <Button
-            size="xs"
-            color={timeframe === "weekly" ? "primary" : "gray"}
-            pill={timeframe !== "weekly"}
-            onClick={() => setTimeframe("weekly")}
-            className={`text-[10px] font-bold uppercase tracking-wider ${
-              timeframe === "weekly" ? "" : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-            }`}
-          >
-            Weekly
-          </Button>
-          <Button
-            size="xs"
-            color={timeframe === "monthly" ? "primary" : "gray"}
-            pill={timeframe !== "monthly"}
-            onClick={() => setTimeframe("monthly")}
-            className={`text-[10px] font-bold uppercase tracking-wider ${
-              timeframe === "monthly" ? "" : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-            }`}
-          >
-            Monthly
-          </Button>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </Select>
         </div>
       </div>
+      <div className="flex items-center w-fit gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-lg">
+        <Button
+          size="xs"
+          color={timeframe === "daily" ? "primary" : "gray"}
+          pill={timeframe !== "daily"}
+          onClick={() => setTimeframe("daily")}
+          className={`text-[10px] font-bold uppercase tracking-wider ${
+            timeframe === "daily"
+              ? ""
+              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+          }`}
+        >
+          Daily
+        </Button>
+        <Button
+          size="xs"
+          color={timeframe === "weekly" ? "primary" : "gray"}
+          pill={timeframe !== "weekly"}
+          onClick={() => setTimeframe("weekly")}
+          className={`text-[10px] font-bold uppercase tracking-wider ${
+            timeframe === "weekly"
+              ? ""
+              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+          }`}
+        >
+          Weekly
+        </Button>
+        <Button
+          size="xs"
+          color={timeframe === "monthly" ? "primary" : "gray"}
+          pill={timeframe !== "monthly"}
+          onClick={() => setTimeframe("monthly")}
+          className={`text-[10px] font-bold uppercase tracking-wider ${
+            timeframe === "monthly"
+              ? ""
+              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+          }`}
+        >
+          Monthly
+        </Button>
+      </div>
 
-      <div className="relative h-80 w-full">
+      <div className="relative h-80 w-full mt-4">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-prussian-blue-900/50 z-10 rounded-lg">
             <Spinner size="lg" color="info" />
@@ -195,10 +265,12 @@ const AnalysisGraph = () => {
         ) : chartData.dates.length === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
             <HiOutlineChartBar className="h-12 w-12 mb-2 opacity-20" />
-            <p className="text-sm font-medium">No performance data found for this period</p>
+            <p className="text-sm font-medium">
+              No performance data found for this period
+            </p>
           </div>
         ) : null}
-        
+
         <Chart
           options={options}
           series={series}

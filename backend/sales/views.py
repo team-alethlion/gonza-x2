@@ -688,34 +688,80 @@ class SaleViewSet(viewsets.ModelViewSet):
         if not branch_id:
             return Response({"error": "branchId required"}, status=400)
 
-        # 1. Base Queryset
-        qs = self.get_queryset().filter(branch_id=branch_id).exclude(status='QUOTE')
+        # 1. Filters
+        sale_filters = {"branch_id": branch_id, "is_deleted": False}
+        expense_filters = {"branch_id": branch_id}
         
         if start_date and end_date:
-            qs = qs.filter(date__range=[start_date, end_date])
+            sale_filters["date__range"] = [start_date, end_date]
+            expense_filters["date__range"] = [start_date, end_date]
         else:
-            qs = qs.filter(date__year=year)
+            sale_filters["date__year"] = year
+            expense_filters["date__year"] = year
 
-        # 2. Aggregation by period
+        # 2. Aggregation Logic
         from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
-        
         trunc_func = TruncMonth
         if timeframe == 'daily': trunc_func = TruncDay
         elif timeframe == 'weekly': trunc_func = TruncWeek
         
-        stats = qs.annotate(period=trunc_func('date')).values('period').annotate(
+        # Sales Stats
+        sales_qs = Sale.objects.filter(**sale_filters).exclude(status='QUOTE')
+        sales_stats = sales_qs.annotate(period=trunc_func('date')).values('period').annotate(
             amount=Sum('total_amount')
         ).order_by('period')
 
-        results = [
-            {
-                "date": item['period'].strftime('%Y-%m-%d'),
-                "amount": float(item['amount'] or 0)
-            }
-            for item in stats
-        ]
+        # Expense Stats
+        expenses_qs = Expense.objects.filter(**expense_filters)
+        expense_stats = expenses_qs.annotate(period=trunc_func('date')).values('period').annotate(
+            amount=Sum('amount')
+        ).order_by('period')
+
+        # 3. Merge results
+        data_map = {}
         
-        return Response(results)
+        for item in sales_stats:
+            d_str = item['period'].strftime('%Y-%m-%d')
+            data_map[d_str] = {"date": d_str, "sales": float(item['amount'] or 0), "expenses": 0.0}
+            
+        for item in expense_stats:
+            d_str = item['period'].strftime('%Y-%m-%d')
+            if d_str in data_map:
+                data_map[d_str]["expenses"] = float(item['amount'] or 0)
+            else:
+                data_map[d_str] = {"date": d_str, "sales": 0.0, "expenses": float(item['amount'] or 0)}
+
+        # Sort by date
+        sorted_results = sorted(data_map.values(), key=lambda x: x['date'])
+        
+        return Response(sorted_results)
+
+    @action(detail=False, methods=['get'])
+    def performance_years(self, request):
+        branch_id = request.query_params.get('branchId')
+        if not branch_id:
+            return Response({"error": "branchId required"}, status=400)
+            
+        # Get unique years from sales and expenses
+        from django.db.models.functions import ExtractYear
+        
+        sale_years = Sale.objects.filter(branch_id=branch_id).annotate(
+            year=ExtractYear('date')
+        ).values_list('year', flat=True).distinct()
+        
+        expense_years = Expense.objects.filter(branch_id=branch_id).annotate(
+            year=ExtractYear('date')
+        ).values_list('year', flat=True).distinct()
+        
+        # Combine and sort descending
+        all_years = sorted(list(set(list(sale_years) + list(expense_years))), reverse=True)
+        
+        # Ensure current year is always included
+        curr_year = timezone.now().year
+        if curr_year not in all_years:
+            all_years.insert(0, curr_year)
+            
+        return Response(all_years)
 
     @action(detail=False, methods=['get'])
     def next_receipt_number(self, request):
