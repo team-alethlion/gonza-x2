@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from "../../store/useAuthStore";
 import { getApiUrl, CONFIG } from "../../config";
 import { NumberFormatter } from "../../utils/formatters";
+import AnalysisGraph from "../../components/dashboard/AnalysisGraph";
 
 const AgencyHome = () => {
   const { user, token } = useAuthStore();
@@ -181,14 +182,18 @@ const AgencyHome = () => {
                   <span className="text-sm">Total Expenses</span>
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold">PAID</span>
+              <div className="mt-1">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                  PAID
+                </span>
                 <span className="text-lg font-bold uppercase">
                   {NumberFormatter.formatCurrency(summaryData?.totalExpenses)}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold">DUE</span>
+              <div className="mt-1">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                  DUE
+                </span>
                 <span className="text-lg font-bold uppercase">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
@@ -223,14 +228,18 @@ const AgencyHome = () => {
                   <span className="text-sm">Debtors & Creditors</span>
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold">DEBTORS</span>
+              <div className="mt-1">
+                <span className="text-[10px] font-bold text-brand-secondary block -mb-1 uppercase">
+                  DEBTORS
+                </span>
                 <span className="text-lg font-bold uppercase">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold">CREDITORS</span>
+              <div className="mt-1">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                  CREDITORS
+                </span>
                 <span className="text-lg font-bold uppercase">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
@@ -264,6 +273,9 @@ const AgencyHome = () => {
             </Card>
           </div>
         )}
+
+        {/* Analysis Section */}
+        <AnalysisGraph />
       </div>
     </div>
   );
