@@ -216,7 +216,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 unique_id = str(uuid.uuid4())[:6]
                 
                 agency = Agency.objects.create(
-                    name=f"{name or 'New'} Agency ({unique_id})",
+                    name=f"{name or 'New'} Agency",
                     subscription_status="expired",
                     had_trial_before=False
                 )
@@ -236,7 +236,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
                 
                 branch = Branch.objects.create(
-                    name=f"Main Branch ({unique_id})",
+                    name="Main Branch",
                     location="Default Location",
                     agency=agency,
                     admin=user,

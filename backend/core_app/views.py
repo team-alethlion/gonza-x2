@@ -225,9 +225,8 @@ class BranchViewSet(viewsets.ModelViewSet):
                     target_agency_id = None # Fallback to creation
             
             if not target_agency_id:
-                unique_id = str(uuid.uuid4())[:6]
                 agency = Agency.objects.create(
-                    name=data.get('businessName', f"Agency {unique_id}"),
+                    name=data.get('businessName', "New Agency"),
                     subscription_status=data.get('subscriptionStatus', 'trial'),
                     had_trial_before=False
                 )

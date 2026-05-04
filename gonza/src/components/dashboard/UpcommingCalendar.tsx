@@ -83,24 +83,24 @@ const UpcommingCalendar = () => {
             appointments.map((appt) => (
               <div
                 key={appt.id}
-                className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-brand-primary/20 transition-all cursor-pointer group">
+                className="flex items-center gap-4 p-3 rounded-xl bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] hover:bg-white/60 dark:hover:bg-white/[0.05] hover:border-brand-primary/20 transition-all cursor-pointer group shadow-sm">
                 {/* Left: Date Block */}
-                <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white dark:bg-space-indigo-800/10 rounded-lg shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-secondary">
+                <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white/80 dark:bg-brand-primary/10 rounded-lg shadow-sm border border-gray-100/50 dark:border-white/[0.05] group-hover:scale-105 transition-transform">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-secondary/80">
                     {appt.month}
                   </span>
-                  <span className="text-lg font-black text-gray-900 dark:text-white leading-none">
+                  <span className="text-lg font-black text-gray-900 dark:text-white/90 leading-none">
                     {appt.day}
                   </span>
                 </div>
 
                 {/* Center: Info Block */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-bold text-gray-900/90 dark:text-white/90 truncate">
                     {appt.description}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-gray-500 dark:text-gray-400">
-                    <HiOutlineClock className="w-3 h-3 text-brand-primary dark:text-brand-accent" />
+                  <div className="flex items-center gap-1.5 mt-0.5 text-gray-500/80 dark:text-gray-400/80">
+                    <HiOutlineClock className="w-3 h-3 text-brand-primary/70 dark:text-brand-accent/70" />
                     <span className="text-[11px] font-medium">{appt.time}</span>
                   </div>
                 </div>

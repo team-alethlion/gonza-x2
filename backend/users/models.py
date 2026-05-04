@@ -17,8 +17,7 @@ class Role(models.Model):
         unique_together = ('agency', 'name')
         
     def __str__(self):
-        agency_name = self.agency.name if self.agency else "Global"
-        return f"{self.name} ({agency_name})"
+        return self.name
 
 class Permission(models.Model):
     id = models.CharField(max_length=30, primary_key=True, default=gen_pe_id)
@@ -29,8 +28,7 @@ class Permission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        agency_name = self.agency.name if self.agency else "Global"
-        return f"{self.name} ({agency_name})"
+        return self.name
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):

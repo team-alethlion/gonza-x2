@@ -187,17 +187,17 @@ const AnalysisGraph = () => {
   ];
 
   return (
-    <Card className="bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 shadow-none mt-6">
+    <Card className="bg-white/40 dark:bg-white/3 backdrop-blur-md border-gray-100/50 dark:border-white/[0.05] shadow-xl mt-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-brand-soft/50 dark:bg-brand-primary/20 mt-1">
+          <div className="p-2 rounded-lg bg-brand-primary/10 dark:bg-brand-primary/20 mt-1">
             <HiOutlineChartBar className="h-5 w-5 text-brand-primary dark:text-brand-accent" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white/90 leading-tight">
               Performance Analysis
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500/80 dark:text-gray-400/80">
               Visualize your sales and expenses over time
             </p>
           </div>
@@ -209,7 +209,13 @@ const AnalysisGraph = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             required
             className="cursor-pointer"
-            size="sm">
+            theme={{
+              field: {
+                select: {
+                  base: "block w-full border disabled:cursor-not-allowed disabled:opacity-50 !py-1.5 !px-3 text-xs rounded-xl bg-white/50 dark:bg-white/[0.05] backdrop-blur-sm border-gray-100/50 dark:border-white/[0.1]",
+                },
+              },
+            }}>
             {availableYears.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -218,40 +224,37 @@ const AnalysisGraph = () => {
           </Select>
         </div>
       </div>
-      <div className="flex items-center w-fit gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-lg">
+      <div className="flex items-center w-fit gap-1 bg-gray-100/30 dark:bg-white/[0.02] backdrop-blur-md p-1 rounded-xl border border-gray-100/20 dark:border-white/[0.05]">
         <Button
           size="xs"
-          color={timeframe === "daily" ? "primary" : "none"}
-          pill={timeframe !== "daily"}
+          color="none"
           onClick={() => setTimeframe("daily")}
-          className={`text-[10px] font-bold uppercase tracking-wider ${
+          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "daily"
-              ? ""
-              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
+              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
           }`}>
           Daily
         </Button>
         <Button
           size="xs"
-          color={timeframe === "weekly" ? "primary" : "none"}
-          pill={timeframe !== "weekly"}
+          color="none"
           onClick={() => setTimeframe("weekly")}
-          className={`text-[10px] font-bold uppercase tracking-wider ${
+          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "weekly"
-              ? "rounded-2"
-              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
+              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
           }`}>
           Weekly
         </Button>
         <Button
           size="xs"
-          color={timeframe === "monthly" ? "primary" : "none"}
-          pill={timeframe !== "monthly"}
+          color="none"
           onClick={() => setTimeframe("monthly")}
-          className={`text-[10px] font-bold uppercase tracking-wider ${
+          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "monthly"
-              ? ""
-              : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
+              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
           }`}>
           Monthly
         </Button>
@@ -259,7 +262,7 @@ const AnalysisGraph = () => {
 
       <div className="relative h-80 w-full mt-4">
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-prussian-blue-900/50 z-10 rounded-lg">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/20 dark:bg-black/10 backdrop-blur-sm z-10 rounded-xl">
             <Spinner size="lg" color="info" />
           </div>
         ) : chartData.dates.length === 0 ? (

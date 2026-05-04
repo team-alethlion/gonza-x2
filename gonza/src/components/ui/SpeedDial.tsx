@@ -36,7 +36,7 @@ const SpeedDial = () => {
                 action.onClick();
                 setIsOpen(false);
               }}
-              className="flex justify-center items-center w-12 h-12 text-brand-primary bg-brand-soft hover:bg-space-indigo-100 dark:bg-space-indigo-800 dark:text-brand-accent dark:hover:bg-space-indigo-700 rounded-full border border-gray-200 dark:border-white/5 shadow-sm transition-colors duration-200 focus:ring-4 focus:ring-brand-primary/20 focus:outline-none"
+              className="flex justify-center items-center w-12 h-12 text-brand-primary bg-white/40 dark:bg-white/[0.05] backdrop-blur-md hover:bg-white/60 dark:hover:bg-white/10 dark:text-brand-accent rounded-full border border-gray-100/50 dark:border-white/[0.05] shadow-xl transition-all duration-200 focus:ring-4 focus:ring-brand-primary/20 focus:outline-none"
             >
               <action.icon className="w-5 h-5" />
               <span className="sr-only">{action.label}</span>
@@ -46,12 +46,9 @@ const SpeedDial = () => {
       </div>
 
       {/* Main Toggle Button */}
-      <Button
-        pill
-        size="xl"
-        color="primary"
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="!p-0 w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-300"
+        className="w-14 h-14 flex items-center justify-center rounded-full bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md text-white border border-white/20 shadow-xl transition-all duration-300 hover:bg-brand-primary focus:outline-none focus:ring-4 focus:ring-brand-primary/20"
       >
         <HiPlus
           className={`w-7 h-7 transition-transform duration-300 ${
@@ -59,7 +56,7 @@ const SpeedDial = () => {
           }`}
         />
         <span className="sr-only">Open actions menu</span>
-      </Button>
+      </button>
     </div>
   );
 };

@@ -83,9 +83,9 @@ const AgencyHome = () => {
 
   // Shared card classes for continuity
   const cardClasses =
-    "bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 shadow-none";
+    "bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl";
   const actionButtonClasses =
-    "border border-2 p-2 w-3xl bg-white dark:bg-white/5 cursor-pointer border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
+    "border border-gray-100/50 dark:border-white/[0.05] backdrop-blur-sm p-2 w-3xl bg-white/40 dark:bg-white/[0.03] cursor-pointer text-gray-900 dark:text-white rounded-lg hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200";
 
   return (
     <div>
@@ -95,12 +95,12 @@ const AgencyHome = () => {
           <span className="text-gray-900 dark:text-white uppercase">
             {userName}
           </span>
-          <button className="flex items-center justify-center text-white dark:bg-space-indigo-950/25 border-2 border-white/20 hover:bg-space-indigo-600 rounded-full px-4 py-1.5 text-sm font-medium">
+          <button className="flex items-center justify-center text-white bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md border border-white/20 hover:bg-brand-primary rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 shadow-sm">
             <HiPlus className="mr-1 h-4 w-4" />
             new sale
           </button>
         </div>
-        <div className="flex items-center justify-start gap-4 p-4 overflow-x-auto">
+        <div className="flex items-center justify-start gap-4 p-4 overflow-x-auto bg-white/20 dark:bg-white/[0.02] backdrop-blur-sm border-y border-gray-100/50 dark:border-white/[0.05]">
           <button className={actionButtonClasses}>Create Receipt</button>
           <button className={actionButtonClasses}>Create Invoice</button>
           <button className={actionButtonClasses}>
@@ -117,7 +117,7 @@ const AgencyHome = () => {
           id="filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="bg-white dark:bg-prussian-blue-900/5 border-2 border-gray-100 dark:border-white/5 p-2 text-gray-900 dark:text-white rounded-lg cursor-pointer">
+          className="bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] p-2 text-gray-900 dark:text-white rounded-xl cursor-pointer shadow-sm hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200">
           <option value="today">Today</option>
           <option value="this_week">This Week</option>
           <option value="this_month">This Month</option>

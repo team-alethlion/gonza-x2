@@ -48,6 +48,11 @@ export function AppSidebar({
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isActive = (path: string) => {
+    if (path === "/agency") return location.pathname === "/agency";
+    return location.pathname.startsWith(path);
+  };
   const [networkSpeed, setNetworkSpeed] = useState<string>("Detecting...");
 
   const handleLogout = async (e: React.MouseEvent) => {
@@ -101,9 +106,17 @@ export function AppSidebar({
             inner:
               "h-full overflow-y-auto overflow-x-hidden bg-white/70 py-4 px-2 dark:bg-prussian-blue-900/0",
           },
-        }}
-        // bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800
-      >
+          item: {
+            base: "flex items-center justify-center rounded-lg p-2 text-base font-normal text-gray-900 hover:bg-white/50 dark:text-white dark:hover:bg-white/10 transition-all duration-200",
+            active:
+              "bg-brand-primary/10 dark:bg-brand-accent/10 text-brand-primary dark:text-brand-accent border border-brand-primary/20 dark:border-brand-accent/20 backdrop-blur-md font-bold",
+            icon: {
+              base: "h-6 w-6 flex-shrink-0 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white",
+              active: "text-brand-primary dark:text-brand-accent",
+            },
+          },
+        }}>
+        {/* bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800 */}
         {!collapsed && (
           <div className="mb-4 px-1 backdrop-blur-md">
             <div className="flex items-center justify-between ">
@@ -151,6 +164,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency"
                 icon={HiChartPie}
+                active={isActive("/agency")}
                 title={collapsed ? "Dashboard" : undefined}>
                 Dashboard
               </SidebarItem>
@@ -158,6 +172,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/sales"
                 icon={HiCurrencyDollar}
+                active={isActive("/agency/sales")}
                 title={collapsed ? "Sales" : undefined}>
                 Sales
               </SidebarItem>
@@ -165,6 +180,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/inventory"
                 icon={HiCube}
+                active={isActive("/agency/inventory")}
                 title={collapsed ? "Inventory" : undefined}>
                 Inventory
               </SidebarItem>
@@ -172,6 +188,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/customers"
                 icon={HiUsers}
+                active={isActive("/agency/customers")}
                 title={collapsed ? "Customers" : undefined}>
                 Customers
               </SidebarItem>
@@ -182,6 +199,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/finance"
                 icon={HiLibrary}
+                active={isActive("/agency/finance")}
                 title={collapsed ? "Finance" : undefined}>
                 Finance
               </SidebarItem>
@@ -189,6 +207,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/expenses"
                 icon={HiTrendingDown}
+                active={isActive("/agency/expenses")}
                 title={collapsed ? "Expenses" : undefined}>
                 Expenses
               </SidebarItem>
@@ -196,6 +215,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/purchases"
                 icon={HiShoppingCart}
+                active={isActive("/agency/purchases")}
                 title={collapsed ? "Purchases" : undefined}>
                 Purchases
               </SidebarItem>
@@ -203,6 +223,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/billing"
                 icon={HiCreditCard}
+                active={isActive("/agency/billing")}
                 title={collapsed ? "Billing" : undefined}>
                 Billing
               </SidebarItem>
@@ -213,6 +234,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/tasks"
                 icon={HiClipboardList}
+                active={isActive("/agency/tasks")}
                 title={collapsed ? "Tasks" : undefined}>
                 Tasks
               </SidebarItem>
@@ -220,6 +242,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/history"
                 icon={HiClock}
+                active={isActive("/agency/history")}
                 title={collapsed ? "History" : undefined}>
                 History
               </SidebarItem>
@@ -227,6 +250,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/profiles"
                 icon={HiUserCircle}
+                active={isActive("/agency/profiles")}
                 title={collapsed ? "Profiles" : undefined}>
                 Profiles
               </SidebarItem>
@@ -237,6 +261,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/settings"
                 icon={HiCog}
+                active={isActive("/agency/settings")}
                 title={collapsed ? "Settings" : undefined}>
                 Settings
               </SidebarItem>
@@ -244,6 +269,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/help"
                 icon={HiQuestionMarkCircle}
+                active={isActive("/agency/help")}
                 title={collapsed ? "Help" : undefined}>
                 Help
               </SidebarItem>
@@ -251,6 +277,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/agency/privacy-policy"
                 icon={HiShieldCheck}
+                active={isActive("/agency/privacy-policy")}
                 title={collapsed ? "Privacy Policy" : undefined}>
                 Privacy Policy
               </SidebarItem>
@@ -258,6 +285,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/public"
                 icon={HiArrowSmRight}
+                active={isActive("/public")}
                 title={collapsed ? "Exit to Public" : undefined}>
                 Exit to Public
               </SidebarItem>
@@ -287,6 +315,7 @@ export function AppSidebar({
                 as={RouterLink}
                 href="/onboarding"
                 icon={HiBriefcase}
+                active={isActive("/onboarding")}
                 title={collapsed ? "Manage Businesses" : undefined}>
                 Manage Businesses
               </SidebarItem>
