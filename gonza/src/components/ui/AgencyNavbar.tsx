@@ -28,7 +28,10 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
   };
 
   return (
-    <Navbar fluid rounded className="relative">
+    <Navbar
+      fluid
+      rounded
+      className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800">
       {/* Leftmost: Sidebar Toggle */}
       <div className="flex items-center">
         <button
@@ -56,8 +59,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
         <button
           onClick={toggleMode}
           className="rounded-lg p-2 text-sm text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-white/5 dark:focus:ring-gray-700 transition-colors"
-          aria-label="Toggle dark mode"
-        >
+          aria-label="Toggle dark mode">
           {mode === "dark" ? (
             <HiSun className="h-5 w-5" />
           ) : (
@@ -69,14 +71,13 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
           inline
           label={
             <div className="hover:opacity-80 transition-opacity">
-              <UserAvatar 
-                name={user?.first_name || user?.email} 
+              <UserAvatar
+                name={user?.first_name || user?.email}
                 src={user?.image}
                 size={32}
               />
             </div>
-          }
-        >
+          }>
           <DropdownHeader className="bg-gray-50/50 dark:bg-white/5">
             <div className="flex flex-col gap-1">
               <span className="block text-[10px] font-black uppercase tracking-widest text-brand-secondary dark:text-brand-accent">

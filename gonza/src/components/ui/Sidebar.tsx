@@ -9,7 +9,25 @@ import {
   SidebarItems,
   Badge,
 } from "flowbite-react";
-import { HiLogout, HiChartPie, HiCurrencyDollar, HiCube, HiUsers, HiLibrary, HiTrendingDown, HiShoppingCart, HiCreditCard, HiClipboardList, HiClock, HiUserCircle, HiCog, HiQuestionMarkCircle, HiShieldCheck, HiArrowSmRight, HiBriefcase } from "react-icons/hi";
+import {
+  HiLogout,
+  HiChartPie,
+  HiCurrencyDollar,
+  HiCube,
+  HiUsers,
+  HiLibrary,
+  HiTrendingDown,
+  HiShoppingCart,
+  HiCreditCard,
+  HiClipboardList,
+  HiClock,
+  HiUserCircle,
+  HiCog,
+  HiQuestionMarkCircle,
+  HiShieldCheck,
+  HiArrowSmRight,
+  HiBriefcase,
+} from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -20,7 +38,11 @@ interface AppSidebarProps {
   onCloseMobile?: () => void;
 }
 
-export function AppSidebar({ collapsed, isMobileOpen, onCloseMobile }: AppSidebarProps) {
+export function AppSidebar({
+  collapsed,
+  isMobileOpen,
+  onCloseMobile,
+}: AppSidebarProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,12 +89,12 @@ export function AppSidebar({ collapsed, isMobileOpen, onCloseMobile }: AppSideba
     <div
       className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 transform lg:static lg:translate-x-0 ${
         isMobileOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-    >
+      }`}>
       <Sidebar
         aria-label="Agency Management Sidebar"
         collapsed={collapsed}
-        className="bg-white/70 dark:bg-prussian-blue-900/70 backdrop-blur-lg h-full"
+        className="bg-white/70 dark:bg-prussian-blue-900/0 backdrop-blur-lg h-full"
+        // bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800
       >
         {!collapsed && (
           <div className="px-4 py-4 border-b border-gray-100 dark:border-white/5 mb-2 bg-brand-soft/30 dark:bg-brand-primary/10 backdrop-blur-md">
@@ -80,10 +102,9 @@ export function AppSidebar({ collapsed, isMobileOpen, onCloseMobile }: AppSideba
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary dark:text-brand-accent opacity-80">
                 {user?.branch?.name || "Main Branch"}
               </h2>
-              <button 
+              <button
                 onClick={onCloseMobile}
-                className="lg:hidden p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500"
-              >
+                className="lg:hidden p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500">
                 <HiLogout className="w-4 h-4 rotate-180" />
               </button>
             </div>

@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (authData?.value) {
         const { user, token, refreshToken } = authData.value;
         
-        // Set initial state from DB
+        // 1. Immediately restore state from Dexie to enable "Fast Path"
         set({
           user,
           token,
@@ -76,21 +76,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: !!token,
         });
 
-        // Silently refresh profile to get latest data (e.g. days_left)
         if (token) {
+          // 2. Optimization: If already onboarded according to Dexie, 
+          // we unblock the UI immediately and refresh in background.
+          if (user?.is_onboarded) {
+            set({ isLoading: false });
+            // Background refresh for critical checks (subscription, frozen status)
+            get().refreshProfile();
+            return;
+          }
+
+          // 3. If not onboarded or missing from DB, we MUST verify with backend
+          // before unblocking the UI to ensure they go to the right guard.
           try {
             const res = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
               headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
               const updatedUser = await res.json();
+              // Persist the verified status back to Dexie
               await get().login(updatedUser, token, refreshToken);
             } else if (res.status === 401) {
-              // Token expired
               await get().logout();
             }
           } catch (e) {
-            console.error("Failed to sync profile on init:", e);
+            console.error("Onboarding verification failed during init:", e);
           }
         }
       }

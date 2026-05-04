@@ -83,9 +83,9 @@ const AgencyHome = () => {
 
   // Shared card classes for continuity
   const cardClasses =
-    "bg-white dark:bg-prussian-blue-900 border-gray-100 dark:border-white/5 shadow-none";
+    "bg-white dark:bg-prussian-blue-900/60 border-gray-100 dark:border-white/5 shadow-none";
   const actionButtonClasses =
-    "border border-2 p-2 w-3xl bg-white dark:bg-prussian-blue-900 border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
+    "border border-2 p-2 w-3xl bg-white dark:bg-prussian-blue-900/5 cursor-pointer border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
 
   return (
     <div>

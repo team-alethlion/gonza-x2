@@ -16,31 +16,51 @@ const UpcommingCalendar = () => {
   const appointments = [
     {
       id: 1,
-      customer: "John Doe",
-      service: "General Consultation",
-      date: "Tomorrow",
-      time: "10:00 AM",
-      status: "Confirmed",
+      month: "May",
+      day: "04",
+      description: "Sample Description for Appointment",
+      time: "12:00 PM",
+      status: "Scheduled",
     },
     {
       id: 2,
-      customer: "Jane Smith",
-      service: "Installment Review",
-      date: "May 15, 2026",
+      month: "May",
+      day: "15",
+      description: "Installment Review Session",
       time: "02:30 PM",
-      status: "Pending",
+      status: "Completed",
+    },
+    {
+      id: 3,
+      month: "Jun",
+      day: "02",
+      description: "Initial Product Consultation",
+      time: "09:00 AM",
+      status: "Cancelled",
     },
   ];
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "scheduled":
+        return "info";
+      case "completed":
+        return "success";
+      case "cancelled":
+        return "failure";
+      default:
+        return "gray";
+    }
+  };
 
   return (
     <div className="mt-6">
       {/* "Modal-like" Section Container */}
-      {/* dark:bg-white/5 */}
-      <Card className="bg-white dark:bg-prussian-blue-900/50 border-gray-100 dark:border-white/5 shadow-xl ">
+      <Card className="bg-white dark:bg-prussian-blue-900/50 border-gray-100 dark:border-white/5 shadow-xl">
         {/* Header mimicking ModalHeader */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg ">
+            <div className="p-2 rounded-lg">
               <HiOutlineCalendar className="h-5 w-5 text-brand-primary dark:text-brand-accent" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
@@ -58,35 +78,40 @@ const UpcommingCalendar = () => {
         </div>
 
         {/* Content mimicking ModalBody */}
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-3">
           {appointments.length > 0 ? (
             appointments.map((appt) => (
               <div
                 key={appt.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-brand-primary/20 transition-all cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-white dark:bg-space-indigo-800 shadow-sm group-hover:scale-110 transition-transform">
-                    <HiOutlineUser className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">
-                      {appt.customer}
-                    </p>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
-                      {appt.service}
-                    </p>
+                className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-white/2 border border-transparent hover:border-brand-primary/20 transition-all cursor-pointer group">
+                {/* Left: Date Block */}
+                <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white dark:bg-space-indigo-800/50 rounded-lg shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-secondary">
+                    {appt.month}
+                  </span>
+                  <span className="text-lg font-black text-gray-900 dark:text-white leading-none">
+                    {appt.day}
+                  </span>
+                </div>
+
+                {/* Center: Info Block */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                    {appt.description}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 text-gray-500 dark:text-gray-400">
+                    <HiOutlineClock className="w-3 h-3 text-brand-primary dark:text-brand-accent" />
+                    <span className="text-[11px] font-medium">{appt.time}</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-1 justify-end text-brand-primary dark:text-brand-accent">
-                    <HiOutlineClock className="h-3 w-3" />
-                    <span className="text-[11px] font-black uppercase tracking-tighter">
-                      {appt.time}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase">
-                    {appt.date}
-                  </p>
+
+                {/* Right: Status Block */}
+                <div className="shrink-0">
+                  <Badge
+                    color={getStatusColor(appt.status)}
+                    className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full">
+                    {appt.status}
+                  </Badge>
                 </div>
               </div>
             ))

@@ -26,14 +26,16 @@ export const theme = createTheme({
     root: {
       base: "h-full border-r border-gray-100 dark:border-white/5",
       inner:
-        "h-full flex flex-col overflow-hidden bg-white px-3 py-2 dark:bg-prussian-blue-900",
+        "h-full flex flex-col overflow-hidden bg-white px-3 py-2 dark:bg-prussian-blue-900/80 backdrop-blur-md shadow-sm",
+      // dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800
       collapsed: {
         on: "w-16",
         off: "w-60",
       },
     },
     item: {
-      active: "bg-brand-soft text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent",
+      active:
+        "bg-brand-soft text-brand-primary dark:bg-brand-primary/20 dark:text-brand-accent",
       base: "flex items-center justify-center rounded-lg py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5 group transition-all duration-200",
       icon: {
         base: "h-5 w-5 flex-shrink-0 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white",
@@ -62,9 +64,11 @@ export const theme = createTheme({
     root: {
       color: {
         info: "bg-brand-soft text-brand-primary dark:bg-space-indigo-800 dark:text-brand-accent",
-        success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-        warning: "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-secondary",
-      }
-    }
-  }
+        success:
+          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+        warning:
+          "bg-brand-secondary/10 text-brand-secondary dark:bg-brand-secondary/20 dark:text-brand-secondary",
+      },
+    },
+  },
 });
