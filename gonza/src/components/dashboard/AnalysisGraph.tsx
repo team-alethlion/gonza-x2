@@ -10,8 +10,12 @@ import { NumberFormatter } from "../../utils/formatters";
 const AnalysisGraph = () => {
   const { user, token } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">("monthly");
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">(
+    "monthly",
+  );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString(),
+  );
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [chartData, setChartData] = useState<{
     dates: string[];
@@ -183,7 +187,7 @@ const AnalysisGraph = () => {
   ];
 
   return (
-    <Card className="bg-white dark:bg-prussian-blue-900 border-gray-100 dark:border-white/5 shadow-none mt-6">
+    <Card className="bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 shadow-none mt-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-brand-soft/50 dark:bg-brand-primary/20 mt-1">
@@ -205,8 +209,7 @@ const AnalysisGraph = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             required
             className="cursor-pointer"
-            size="sm"
-          >
+            size="sm">
             {availableYears.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -218,41 +221,38 @@ const AnalysisGraph = () => {
       <div className="flex items-center w-fit gap-1 bg-gray-50 dark:bg-white/5 p-1 rounded-lg">
         <Button
           size="xs"
-          color={timeframe === "daily" ? "primary" : "gray"}
+          color={timeframe === "daily" ? "primary" : "none"}
           pill={timeframe !== "daily"}
           onClick={() => setTimeframe("daily")}
           className={`text-[10px] font-bold uppercase tracking-wider ${
             timeframe === "daily"
               ? ""
               : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-          }`}
-        >
+          }`}>
           Daily
         </Button>
         <Button
           size="xs"
-          color={timeframe === "weekly" ? "primary" : "gray"}
+          color={timeframe === "weekly" ? "primary" : "none"}
           pill={timeframe !== "weekly"}
           onClick={() => setTimeframe("weekly")}
           className={`text-[10px] font-bold uppercase tracking-wider ${
             timeframe === "weekly"
-              ? ""
+              ? "rounded-2"
               : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-          }`}
-        >
+          }`}>
           Weekly
         </Button>
         <Button
           size="xs"
-          color={timeframe === "monthly" ? "primary" : "gray"}
+          color={timeframe === "monthly" ? "primary" : "none"}
           pill={timeframe !== "monthly"}
           onClick={() => setTimeframe("monthly")}
           className={`text-[10px] font-bold uppercase tracking-wider ${
             timeframe === "monthly"
               ? ""
               : "bg-transparent border-none text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
-          }`}
-        >
+          }`}>
           Monthly
         </Button>
       </div>

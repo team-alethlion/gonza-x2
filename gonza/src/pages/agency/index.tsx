@@ -83,9 +83,9 @@ const AgencyHome = () => {
 
   // Shared card classes for continuity
   const cardClasses =
-    "bg-white dark:bg-prussian-blue-900/60 border-gray-100 dark:border-white/5 shadow-none";
+    "bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 shadow-none";
   const actionButtonClasses =
-    "border border-2 p-2 w-3xl bg-white dark:bg-prussian-blue-900/5 cursor-pointer border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
+    "border border-2 p-2 w-3xl bg-white dark:bg-white/5 cursor-pointer border-gray-100 dark:border-white/5 text-gray-900 dark:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-space-indigo-800 transition-colors";
 
   return (
     <div>
@@ -95,7 +95,7 @@ const AgencyHome = () => {
           <span className="text-gray-900 dark:text-white uppercase">
             {userName}
           </span>
-          <button className="flex items-center justify-center text-white bg-brand-primary hover:bg-space-indigo-600 rounded-full px-4 py-1.5 text-sm font-medium">
+          <button className="flex items-center justify-center text-white dark:bg-space-indigo-950/25 border-2 border-white/20 hover:bg-space-indigo-600 rounded-full px-4 py-1.5 text-sm font-medium">
             <HiPlus className="mr-1 h-4 w-4" />
             new sale
           </button>
@@ -117,7 +117,7 @@ const AgencyHome = () => {
           id="filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="bg-white dark:bg-prussian-blue-900 border-2 border-gray-100 dark:border-white/5 p-2 text-gray-900 dark:text-white rounded-lg cursor-pointer">
+          className="bg-white dark:bg-prussian-blue-900/5 border-2 border-gray-100 dark:border-white/5 p-2 text-gray-900 dark:text-white rounded-lg cursor-pointer">
           <option value="today">Today</option>
           <option value="this_week">This Week</option>
           <option value="this_month">This Month</option>

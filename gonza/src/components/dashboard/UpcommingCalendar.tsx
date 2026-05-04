@@ -40,23 +40,23 @@ const UpcommingCalendar = () => {
     },
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status.toLowerCase()) {
       case "scheduled":
-        return "info";
+        return "bg-brand-primary/10 text-brand-primary dark:bg-brand-accent/10 dark:text-brand-accent border-brand-primary/20 dark:border-brand-accent/20";
       case "completed":
-        return "success";
+        return "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/20";
       case "cancelled":
-        return "failure";
+        return "bg-rose-500/10 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-rose-500/20 dark:border-rose-500/20";
       default:
-        return "gray";
+        return "bg-gray-500/10 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400 border-gray-500/20 dark:border-gray-500/20";
     }
   };
 
   return (
     <div className="mt-6">
       {/* "Modal-like" Section Container */}
-      <Card className="bg-white dark:bg-prussian-blue-900/50 border-gray-100 dark:border-white/5 shadow-xl">
+      <Card className="bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 shadow-xl">
         {/* Header mimicking ModalHeader */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-white/5">
           <div className="flex items-center gap-2">
@@ -83,9 +83,9 @@ const UpcommingCalendar = () => {
             appointments.map((appt) => (
               <div
                 key={appt.id}
-                className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-white/2 border border-transparent hover:border-brand-primary/20 transition-all cursor-pointer group">
+                className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-transparent hover:border-brand-primary/20 transition-all cursor-pointer group">
                 {/* Left: Date Block */}
-                <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white dark:bg-space-indigo-800/50 rounded-lg shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform">
+                <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white dark:bg-space-indigo-800/10 rounded-lg shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform">
                   <span className="text-[10px] font-black uppercase tracking-wider text-brand-secondary">
                     {appt.month}
                   </span>
@@ -107,11 +107,12 @@ const UpcommingCalendar = () => {
 
                 {/* Right: Status Block */}
                 <div className="shrink-0">
-                  <Badge
-                    color={getStatusColor(appt.status)}
-                    className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full">
+                  <span
+                    className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${getStatusStyles(
+                      appt.status
+                    )}`}>
                     {appt.status}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             ))

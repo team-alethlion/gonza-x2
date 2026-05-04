@@ -8,6 +8,7 @@ import {
   SidebarItemGroup,
   SidebarItems,
   Badge,
+  Select,
 } from "flowbite-react";
 import {
   HiLogout,
@@ -27,6 +28,7 @@ import {
   HiShieldCheck,
   HiArrowSmRight,
   HiBriefcase,
+  HiUser,
 } from "react-icons/hi";
 import { RouterLink } from "./RouterLink";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -93,13 +95,19 @@ export function AppSidebar({
       <Sidebar
         aria-label="Agency Management Sidebar"
         collapsed={collapsed}
-        className="bg-white/70 dark:bg-prussian-blue-900/0 backdrop-blur-lg h-full"
+        className="bg-white/70 dark:bg-prussian-blue-900/20 backdrop-blur-lg h-full pt-10"
+        theme={{
+          root: {
+            inner:
+              "h-full overflow-y-auto overflow-x-hidden bg-white/70 py-4 px-2 dark:bg-prussian-blue-900/0",
+          },
+        }}
         // bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-100 dark:border-gray-800
       >
         {!collapsed && (
-          <div className="px-4 py-4 border-b border-gray-100 dark:border-white/5 mb-2 bg-brand-soft/30 dark:bg-brand-primary/10 backdrop-blur-md">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary dark:text-brand-accent opacity-80">
+          <div className="mb-4 px-1 backdrop-blur-md">
+            <div className="flex items-center justify-between ">
+              <h2 className="text-[.8rem] px-3 font-extrabold capitalize tracking-[0.2em] text-brand-primary dark:text-white/30 opacity-80">
                 {user?.branch?.name || "Main Branch"}
               </h2>
               <button
@@ -109,13 +117,29 @@ export function AppSidebar({
               </button>
             </div>
             <div className="flex items-center">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-extrabold truncate text-gray-900 dark:text-white">
-                  {user?.first_name} {user?.last_name || ""}
-                </p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-60">
-                  {user?.role?.name || "Member"}
-                </p>
+              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                <p className="text-sm font-extrabold truncate text-gray-900 dark:text-white"></p>
+                <div className="flex items-center gap-2">
+                  <HiUser />
+                  <div className="flex-1 min-w-0">
+                    <Select
+                      name="role"
+                      id="role"
+                      sizing="sm"
+                      theme={{
+                        field: {
+                          select: {
+                            base: "block flex-1! bg-gray-950/20! w-full border disabled:cursor-not-allowed disabled:opacity-50 py-[.3rem]! px-2! text-xs rounded-md!",
+                          },
+                        },
+                      }}>
+                      <option value="">
+                        {user?.role?.name || "Member"} (
+                        {user?.role?.name || "Member"})
+                      </option>
+                    </Select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
