@@ -29,14 +29,14 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
     const isThermal = receiptType === "Thermal";
 
     const opt = {
-      margin: isThermal ? [0, 0, 0, 0] : [10, 10, 10, 10],
+      margin: isThermal ? [0, 0, 0, 0] : [0, 0, 0, 0], // Using internal padding instead of jspdf margins for better control
       filename: `receipt-${receiptType.toLowerCase()}-${new Date().getTime()}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
-        scale: 3,
+        scale: 2, // 2 is standard for high quality without hitting canvas limits
         useCORS: true,
         letterRendering: true,
-        windowWidth: isThermal ? 400 : 1200,
+        windowWidth: isThermal ? 302 : 794, // 794px is exactly A4 width at 96 DPI
       },
       jsPDF: {
         unit: "mm",
