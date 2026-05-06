@@ -8,7 +8,7 @@ import {
   Spinner,
   Badge,
 } from "flowbite-react";
-import { HiOutlineTarget, HiTrendingUp } from "react-icons/hi";
+import { HiOutlineTrendingUp, HiTrendingUp } from "react-icons/hi";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -107,7 +107,7 @@ const SalesGoalTracker = () => {
             </p>
           </div>
           <div className="p-2 bg-brand-primary/10 rounded-lg">
-            <HiOutlineTarget className="h-5 w-5 text-brand-primary dark:text-brand-accent" />
+            <HiOutlineTrendingUp className="h-5 w-5 text-brand-primary dark:text-brand-accent" />
           </div>
         </div>
 
