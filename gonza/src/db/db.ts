@@ -202,6 +202,23 @@ export interface Appointment {
   updated_at: string;
 }
 
+export interface SalesGoal {
+  id: string;
+  amount_target: number;
+  sales_count_target: number;
+  products_sold_target: number;
+  period: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | "CUSTOM";
+  period_name?: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  agency?: string;
+  branch?: string;
+  user?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PendingSale {
   id: string; // local UUID
   data: any; // full sale payload (matching backend POST /sales/sales/)
@@ -237,6 +254,7 @@ export const db = new Dexie("GonzaDB") as Dexie & {
   expenseCategories: EntityTable<ExpenseCategory, "id">;
   expenses: EntityTable<Expense, "id">;
   appointments: EntityTable<Appointment, "id">;
+  salesGoals: EntityTable<SalesGoal, "id">;
 };
 
 // Add after the SalesReturnItem interface (before the db declaration)
@@ -284,6 +302,16 @@ db.version(5)
   .upgrade(async (tx) => {
     console.log("🔄 Running Dexie upgrade from version 4 to 5");
     await tx.table("settings").put({ id: "db_version", value: 5 });
+  });
+
+// Version 6 – sales goals table
+db.version(6)
+  .stores({
+    salesGoals: "id, branch, period, status, updated_at",
+  })
+  .upgrade(async (tx) => {
+    console.log("🔄 Running Dexie upgrade from version 5 to 6");
+    await tx.table("settings").put({ id: "db_version", value: 6 });
   });
 
 // If you already have version 3, Dexie will upgrade automatically.
