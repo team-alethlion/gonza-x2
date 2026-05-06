@@ -17,6 +17,8 @@ import AnalysisGraph from "../../components/dashboard/AnalysisGraph";
 import UpcommingCalendar from "../../components/dashboard/UpcommingCalendar";
 import { useDashboard } from "../../store/useDashboardStore";
 import { useFinanceStore } from "../../store/useFinanceStore";
+import FinancialOverview from "../../components/dashboard/FinancialOverview";
+import SalesGoalTracker from "../../components/dashboard/SalesGoalTracker";
 
 const AgencyHome = () => {
   const { user } = useAuthStore();
@@ -73,7 +75,9 @@ const AgencyHome = () => {
             Create Invoice
           </button>
           <button
-            onClick={() => navigate("/agency/sales/new-sale?create=installment")}
+            onClick={() =>
+              navigate("/agency/sales/new-sale?create=installment")
+            }
             className={actionButtonClasses}>
             Create Installment Sale
           </button>
@@ -253,6 +257,11 @@ const AgencyHome = () => {
 
         {/* Calendar Section */}
         <UpcommingCalendar />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <FinancialOverview />
+          <SalesGoalTracker />
+        </div>
       </div>
     </div>
   );

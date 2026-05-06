@@ -7,7 +7,7 @@ import {
   TabItem,
   Tabs,
   TextInput,
-  Hr,
+  HR,
 } from "flowbite-react";
 
 const SalesGoalTracker = () => {
@@ -64,7 +64,7 @@ const SalesGoalTracker = () => {
         <TextInput />
         <Button>Set Goal</Button>
       </div>
-      <Hr />
+      <HR />
       <div>Business Goal Tip. ....</div>
     </div>
   );

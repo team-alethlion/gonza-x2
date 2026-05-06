@@ -49,9 +49,11 @@ const UpcommingCalendar = () => {
     title: "",
     description: "",
     start_time: "",
-    customer_name: "",
-    customer_phone: "",
+    status: "SCHEDULED",
+    customer: "", // This will hold the customer ID (Related Lead)
   });
+
+  const existingLeads = useLiveQuery(() => db.customers.toArray());
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.start_time) {
@@ -63,10 +65,15 @@ const UpcommingCalendar = () => {
     setError(null);
 
     try {
+      // Find the selected customer to send name/phone as fallback if needed by backend
+      const selectedLead = existingLeads?.find((l) => l.id === formData.customer);
+
       const res = await apiFetch("/appointments/", {
         method: "POST",
         body: JSON.stringify({
           ...formData,
+          customer_name: selectedLead?.name || "",
+          customer_phone: selectedLead?.phone || "",
           agencyId: (user as any)?.agency?.id,
           branchId: (user as any)?.branch?.id,
         }),
@@ -79,8 +86,8 @@ const UpcommingCalendar = () => {
           title: "",
           description: "",
           start_time: "",
-          customer_name: "",
-          customer_phone: "",
+          status: "SCHEDULED",
+          customer: "",
         });
       } else {
         const errData = await res.json();
@@ -222,61 +229,84 @@ const UpcommingCalendar = () => {
         <ModalBody className="p-6 space-y-4">
           {error && <Alert color="failure">{error}</Alert>}
           <div>
-            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2">
-              Title
+            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2 uppercase">
+              Event Title *
             </Label>
             <TextInput
               placeholder="e.g. Consultation, Fitting..."
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               theme={inputTheme}
             />
           </div>
+
           <div>
-            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2">
-              Date & Time
+            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2 uppercase">
+              Related Lead
             </Label>
-            <TextInput
-              type="datetime-local"
-              value={formData.start_time}
-              onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-              theme={inputTheme}
-            />
+            <Select
+              value={formData.customer}
+              onChange={(e) =>
+                setFormData({ ...formData, customer: e.target.value })
+              }
+              theme={inputTheme as any}>
+              <option value="" disabled>
+                Select a lead
+              </option>
+              <option value="">No specific lead</option>
+              {existingLeads?.map((lead) => (
+                <option key={lead.id} value={lead.id}>
+                  {lead.name} {lead.phone ? `(${lead.phone})` : ""}
+                </option>
+              ))}
+            </Select>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2">
-                Customer Name
+              <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2 uppercase">
+                Date & Time *
               </Label>
               <TextInput
-                placeholder="Bonnie Green"
-                value={formData.customer_name}
-                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                type="datetime-local"
+                value={formData.start_time}
+                onChange={(e) =>
+                  setFormData({ ...formData, start_time: e.target.value })
+                }
                 theme={inputTheme}
               />
             </div>
             <div>
-              <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2">
-                Contact
+              <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2 uppercase">
+                Status
               </Label>
-              <TextInput
-                placeholder="07..."
-                value={formData.customer_phone}
-                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                theme={inputTheme}
-              />
+              <Select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                theme={inputTheme as any}>
+                <option value="SCHEDULED">Scheduled</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </Select>
             </div>
           </div>
+
           <div>
-            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2">
-              Notes
+            <Label className="text-[10px] font-bold tracking-widest text-gray-500 block mb-2 uppercase">
+              Event Description
             </Label>
             <Textarea
               placeholder="Details about the appointment..."
               rows={3}
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="bg-white/40 dark:bg-white/[0.05] border-gray-200/50 dark:border-white/[0.1] text-gray-900 dark:text-white rounded-sm text-sm"
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="bg-white/40 dark:bg-white/[0.05] border-gray-200/50 dark:border-white/[0.1] text-gray-900 dark:text-white rounded-sm text-sm focus:ring-brand-primary/20 focus:border-brand-primary transition-all duration-200"
             />
           </div>
         </ModalBody>
