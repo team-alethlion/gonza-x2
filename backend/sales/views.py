@@ -77,20 +77,43 @@ class SalesGoalViewSet(viewsets.ModelViewSet):
             "progress_percentage": float((current_sales / float(goal.amount_target) * 100)) if (goal and goal.amount_target > 0) else 0
         })
 
-    def perform_create(self, serializer):
-        branch_id = self.request.data.get('branch')
-        start_date = self.request.data.get('start_date')
-        end_date = self.request.data.get('end_date')
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        branch_id = data.get('branchId') or data.get('branch')
+        period = data.get('period')
+        period_name = data.get('period_name')
+        amount_target = to_decimal(data.get('amount_target', 0))
         
-        # Calculate current progress for this period
-        current_progress = 0
-        if branch_id and start_date and end_date:
-            current_progress = Sale.objects.filter(
-                branch_id=branch_id,
-                date__range=[start_date, end_date]
-            ).exclude(status='QUOTE').aggregate(total=Sum('total_amount'))['total'] or 0
-            
-        serializer.save(current_amount=current_progress)
+        if not branch_id or not period or not period_name:
+            return Response({"error": "branchId, period, and period_name are required"}, status=400)
+
+        # 🛡️ UPSERT LOGIC: Update existing goal for this specific period/branch or create new
+        goal, created = SalesGoal.objects.update_or_create(
+            branch_id=branch_id,
+            period=period,
+            period_name=period_name,
+            defaults={
+                'amount_target': amount_target,
+                'agency_id': data.get('agencyId'),
+                'user': request.user,
+                'status': 'ACTIVE',
+                'end_date': data.get('end_date') or timezone.now() # Fallback if missing
+            }
+        )
+        
+        # Calculate current progress
+        current_progress = Sale.objects.filter(
+            branch_id=branch_id,
+            date__range=[goal.start_date, goal.end_date]
+        ).exclude(status='QUOTE').aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        goal.current_amount = current_progress
+        goal.save()
+
+        return Response(SalesGoalSerializer(goal).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+    def perform_create(self, serializer):
 
 class SaleCategoryViewSet(viewsets.ModelViewSet):
     queryset = SaleCategory.objects.all()
