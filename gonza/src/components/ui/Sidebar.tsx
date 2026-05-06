@@ -33,6 +33,7 @@ import {
 import { RouterLink } from "./RouterLink";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
+import NetworkSpeedTest from "./NetworkSpeedTest";
 
 interface AppSidebarProps {
   collapsed?: boolean;
@@ -53,7 +54,6 @@ export function AppSidebar({
     if (path === "/agency") return location.pathname === "/agency";
     return location.pathname.startsWith(path);
   };
-  const [networkSpeed, setNetworkSpeed] = useState<string>("Detecting...");
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,32 +65,6 @@ export function AppSidebar({
     // Only close mobile sidebar when the path actually changes
     onCloseMobile?.();
   }, [location.pathname]); // Removed onCloseMobile from dependencies to avoid recreation loop
-
-  useEffect(() => {
-    const updateConnectionInfo = () => {
-      const connection = // @ts-expect-error - navigator.connection is not standard in all browsers
-        navigator.connection || // @ts-expect-error - navigator.connection is not standard in all browsers
-        navigator.mozConnection || // @ts-expect-error - navigator.connection is not standard in all browsers
-        navigator.webkitConnection;
-      if (connection) {
-        setNetworkSpeed(`${connection.downlink} Mbps`);
-      } else {
-        setNetworkSpeed("Unknown");
-      }
-    };
-
-    updateConnectionInfo();
-
-    const connection = // @ts-expect-error - navigator.connection is not standard in all browsers
-      navigator.connection || // @ts-expect-error - navigator.connection is not standard in all browsers
-      navigator.mozConnection || // @ts-expect-error - navigator.connection is not standard in all browsers
-      navigator.webkitConnection;
-    if (connection && connection.addEventListener) {
-      connection.addEventListener("change", updateConnectionInfo);
-      return () =>
-        connection.removeEventListener("change", updateConnectionInfo);
-    }
-  }, []);
 
   return (
     <div
@@ -294,16 +268,7 @@ export function AppSidebar({
 
           {!collapsed && (
             <SidebarCTA>
-              <div className="mb-3 flex items-center">
-                <Badge color="warning">Network Speed</Badge>
-              </div>
-              <div className="mb-3 text-sm text-[#80ced7] dark:text-[#80ced7]">
-                Current download speed:{" "}
-                <span className="font-bold text-white">{networkSpeed}</span>
-              </div>
-              <div className="text-xs text-white/60">
-                This helps us optimize your inventory syncing performance.
-              </div>
+              <NetworkSpeedTest />
             </SidebarCTA>
           )}
         </div>
