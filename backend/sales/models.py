@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.text import slugify
 from core.utils import gen_sg_id, gen_slc_id, gen_sls_id, gen_sa_id, gen_si_id, gen_ip_id, gen_sr_id, gen_sri_id
 
@@ -109,7 +109,7 @@ class Sale(models.Model):
     
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     payment_method = models.CharField(max_length=50, choices=PAYMENT_METHODS, default='CASH')
-    date = models.DateTimeField(default=timezone.now)
+    date = models.DateTimeField(default=now)
     notes = models.TextField(null=True, blank=True)
     
     agency = models.ForeignKey('core_app.Agency', on_delete=models.CASCADE, related_name='sales', null=True, blank=True)
