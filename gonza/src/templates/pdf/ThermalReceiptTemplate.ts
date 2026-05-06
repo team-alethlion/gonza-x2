@@ -18,7 +18,7 @@ export const generateThermalReceiptMarkdown = (data: NewSaleFormData) => {
   });
 
   return `
-<div style="width: 302px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: black; background: white; padding: 15px; box-sizing: border-box; margin: 0 auto; border: 1px solid #eee;">
+<div style="width: 302px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: black; background: white; padding: 15px; box-sizing: border-box; margin: 0 auto;">
   <div style="text-align: center; margin-bottom: 10px;">
     <h2 style="margin: 0; font-size: 18px; text-transform: uppercase;">Gonza Systems</h2>
     <p style="margin: 5px 0; font-size: 10px;">Quality & Efficiency</p>

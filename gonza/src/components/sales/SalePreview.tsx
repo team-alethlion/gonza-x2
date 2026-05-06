@@ -29,18 +29,18 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
     const isThermal = receiptType === "Thermal";
 
     const opt = {
-      margin: isThermal ? [0, 0, 0, 0] : [0, 0, 0, 0], // Using internal padding instead of jspdf margins for better control
+      margin: 0,
       filename: `receipt-${receiptType.toLowerCase()}-${new Date().getTime()}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
-        scale: 2, // 2 is standard for high quality without hitting canvas limits
+        scale: 2,
         useCORS: true,
         letterRendering: true,
-        windowWidth: isThermal ? 302 : 794, // 794px is exactly A4 width at 96 DPI
+        windowWidth: isThermal ? 302 : 794,
       },
       jsPDF: {
         unit: "mm",
-        format: isThermal ? [80, 200] : "a4",
+        format: isThermal ? [80, Math.max(200, (element.offsetHeight * 25.4) / 96 + 20)] : "a4",
         orientation: "portrait",
       },
     };
@@ -56,43 +56,38 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
       theme={{
         content: {
           inner:
-            "relative rounded-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/[0.1] shadow-2xl flex flex-col",
+            "relative rounded-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200 dark:border-white/[0.1] shadow-2xl flex flex-col",
         },
       }}>
       <ModalHeader className="border-b border-gray-100/50 dark:border-white/[0.05] p-4">
-        <div className="flex items-center justify-between w-full">
-          <span className="text-sm font-black  tracking-[0.2em] text-brand-primary dark:text-brand-accent">
-            Sale Receipt Preview
+        <div className="flex items-center justify-between w-full pr-8">
+          <span className="text-sm font-black uppercase tracking-[0.2em] text-brand-primary dark:text-brand-accent">
+            Receipt Preview
           </span>
+          
+          <div className="flex p-1 bg-gray-100/50 dark:bg-black/40 rounded-sm border border-gray-200/50 dark:border-white/5">
+            <button
+              onClick={() => setReceiptType("A4")}
+              className={`px-3 py-1 text-[10px] font-bold transition-all rounded-sm uppercase tracking-wider ${
+                receiptType === "A4"
+                  ? "bg-brand-primary text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-brand-primary dark:hover:text-brand-accent"
+              }`}>
+              Standard A4
+            </button>
+            <button
+              onClick={() => setReceiptType("Thermal")}
+              className={`px-3 py-1 text-[10px] font-bold transition-all rounded-sm uppercase tracking-wider ${
+                receiptType === "Thermal"
+                  ? "bg-brand-primary text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-brand-primary dark:hover:text-brand-accent"
+              }`}>
+              Thermal 80mm
+            </button>
+          </div>
         </div>
       </ModalHeader>
-      <ModalBody className="p-0 bg-gray-100 dark:bg-gray-900 overflow-y-auto max-h-[80vh] flex flex-col items-center">
-        {/* Type Switcher */}
-        <div className="flex gap-2 p-4 w-full justify-center bg-white/50 dark:bg-black/20 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-200/50 dark:border-white/5">
-          <Button
-            color="none"
-            size="xs"
-            onClick={() => setReceiptType("A4")}
-            className={`rounded-sm transition-all ${
-              receiptType === "A4"
-                ? "bg-brand-primary text-white shadow-md"
-                : "bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400"
-            }`}>
-            <HiDocumentText className="mr-1 h-4 w-4" /> A4 Standard
-          </Button>
-          <Button
-            color="none"
-            size="xs"
-            onClick={() => setReceiptType("Thermal")}
-            className={`rounded-sm transition-all ${
-              receiptType === "Thermal"
-                ? "bg-brand-primary text-white shadow-md"
-                : "bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400"
-            }`}>
-            <HiTicket className="mr-1 h-4 w-4" /> Thermal (80mm)
-          </Button>
-        </div>
-
+      <ModalBody className="p-0 bg-gray-100/30 dark:bg-black/20 overflow-y-auto max-h-[80vh] flex flex-col items-center">
         {/* 🚀 Scaling Wrapper */}
         <div className="p-4 sm:p-8 w-full flex justify-center overflow-x-hidden">
           <div
@@ -130,20 +125,20 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
           </div>
         </div>
       </ModalBody>
-      <ModalFooter className="border-t border-gray-100/50 dark:border-white/[0.05] p-4 flex justify-end gap-3 bg-white dark:bg-gray-900">
+      <ModalFooter className="border-t border-gray-100/50 dark:border-white/[0.05] p-4 flex justify-end gap-3 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
         <Button
           color="none"
           size="sm"
           onClick={onClose}
-          className="rounded-sm bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-white hover:bg-gray-200">
+          className="rounded-sm bg-gray-100/50 dark:bg-white/5 text-gray-700 dark:text-white hover:bg-gray-200 transition-all">
           Close
         </Button>
         <Button
           color="none"
           size="sm"
           onClick={handleDownloadPDF}
-          className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark">
-          Download {receiptType} PDF
+          className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark transition-all shadow-lg hover:shadow-brand-primary/20">
+          Download {receiptType}
         </Button>
       </ModalFooter>
     </Modal>
