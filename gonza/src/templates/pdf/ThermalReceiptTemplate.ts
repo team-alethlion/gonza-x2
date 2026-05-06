@@ -10,6 +10,7 @@ export const generateThermalReceiptMarkdown = (data: NewSaleFormData) => {
     taxRate = 0,
     paymentStatus = "Paid",
     date = new Date(),
+    receiptOptions = { includePayment: true },
   } = data;
 
   const formattedDate = new Date(date).toLocaleString("en-GB", {
@@ -20,14 +21,20 @@ export const generateThermalReceiptMarkdown = (data: NewSaleFormData) => {
   return `
 <div style="width: 302px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: black; background: white; padding: 15px; box-sizing: border-box; margin: 0 auto;">
   <div style="text-align: center; margin-bottom: 10px;">
-    <h2 style="margin: 0; font-size: 18px; text-transform: uppercase;">Gonza Systems</h2>
+    <h2 style="margin: 0; font-size: 18px; text-transform: uppercase;">${
+      receiptOptions.includePayment ? "SALE RECEIPT" : "SALE INVOICE"
+    }</h2>
     <p style="margin: 5px 0; font-size: 10px;">Quality & Efficiency</p>
     <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
   </div>
 
   <div style="margin-bottom: 10px;">
     <p style="margin: 2px 0;"><strong>Date:</strong> ${formattedDate}</p>
-    <p style="margin: 2px 0;"><strong>Status:</strong> ${paymentStatus.toUpperCase()}</p>
+    ${
+      receiptOptions.includePayment
+        ? `<p style="margin: 2px 0;"><strong>Status:</strong> ${paymentStatus.toUpperCase()}</p>`
+        : ""
+    }
     ${customers.length > 0 ? `<p style="margin: 2px 0;"><strong>Customer:</strong> ${customers[0].name}</p>` : ""}
   </div>
 

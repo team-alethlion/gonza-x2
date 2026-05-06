@@ -11,6 +11,7 @@ export const generateSaleReceiptMarkdown = (data: NewSaleFormData) => {
     paymentStatus = "Paid",
     saleSource = "",
     date = new Date(),
+    receiptOptions = { includePayment: true },
   } = data;
 
   const formattedDate = new Date(date).toLocaleDateString("en-GB", {
@@ -22,7 +23,9 @@ export const generateSaleReceiptMarkdown = (data: NewSaleFormData) => {
 
   <!-- Header Section -->
   <div style="text-align: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
-    <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px; color: #000;">SALE RECEIPT</h1>
+    <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px; color: #000;">${
+      receiptOptions.includePayment ? "SALE RECEIPT" : "SALE INVOICE"
+    }</h1>
     <p style="margin: 5px 0; color: #666; font-size: 14px;">Gonza Systems - Professional Billing</p>
     <p style="margin: 5px 0; font-weight: bold;">${formattedDate}</p>
   </div>
@@ -50,9 +53,19 @@ export const generateSaleReceiptMarkdown = (data: NewSaleFormData) => {
         .join("")}
     </div>
     <div style="width: 35%; text-align: right;">
-       <h3 style="font-size: 12px; font-weight: 800; text-transform: ; color: #888; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Receipt Details</h3>
-       <p style="margin: 0; font-size: 13px;"><strong>Status:</strong> ${paymentStatus.toUpperCase()}</p>
-       ${saleSource ? `<p style="margin: 5px 0; font-size: 13px;"><strong>Source:</strong> ${saleSource}</p>` : ""}
+       <h3 style="font-size: 12px; font-weight: 800; text-transform: ; color: #888; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">${
+         receiptOptions.includePayment ? "Receipt Details" : "Invoice Details"
+       }</h3>
+       ${
+         receiptOptions.includePayment
+           ? `<p style="margin: 0; font-size: 13px;"><strong>Status:</strong> ${paymentStatus.toUpperCase()}</p>`
+           : ""
+       }
+       ${
+         saleSource && receiptOptions.includePayment
+           ? `<p style="margin: 5px 0; font-size: 13px;"><strong>Source:</strong> ${saleSource}</p>`
+           : ""
+       }
        <p style="margin: 5px 0; font-size: 13px;"><strong>Currency:</strong> UGX</p>
     </div>
   </div>

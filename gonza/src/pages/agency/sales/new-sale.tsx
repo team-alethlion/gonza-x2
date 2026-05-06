@@ -110,6 +110,7 @@ const NewSale = () => {
       saleSourceId: data.saleSource || null,
       linkToCash: data.linkToCash,
       cashAccountId: data.cashAccountId || null,
+      sendEmail: data.receiptOptions.sendEmail,
     };
 
     try {
