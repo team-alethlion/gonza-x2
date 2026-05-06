@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
-import { CONFIG, getApiUrl } from "../../config";
+import { CONFIG } from "../../config";
+import { apiFetch } from "../../utils/api";
 import { PageLoader } from "../../components/ui/Loader";
 
 // 1. Define Validation Schema
@@ -81,12 +82,8 @@ const OnboardingHome = () => {
       if (!token || !user) throw new Error("Authentication session missing");
 
       // 1. Update User Profile
-      const userUpdateRes = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/${user.id}/`), {
+      const userUpdateRes = await apiFetch(`${CONFIG.API.USERS.BASE}users/${user.id}/`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           first_name: data.firstName,
           last_name: data.lastName,
@@ -99,12 +96,8 @@ const OnboardingHome = () => {
 
       // 2. Update Agency Name
       if (user.agency?.id) {
-        const agencyUpdateRes = await fetch(getApiUrl(`${CONFIG.API.CORE.BASE}agencies/${user.agency.id}/`), {
+        const agencyUpdateRes = await apiFetch(`${CONFIG.API.CORE.BASE}agencies/${user.agency.id}/`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             name: data.agencyName,
             is_onboarded: true
@@ -116,12 +109,8 @@ const OnboardingHome = () => {
 
       // 3. Update Main Branch Location & Phone
       if (user.branch?.id) {
-        await fetch(getApiUrl(`${CONFIG.API.CORE.BASE}branches/${user.branch.id}/`), {
+        await apiFetch(`${CONFIG.API.CORE.BASE}branches/${user.branch.id}/`, {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             location: data.location,
             phone: data.branchPhone || data.phone,

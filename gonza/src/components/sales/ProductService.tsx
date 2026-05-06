@@ -11,7 +11,9 @@ import {
 } from "flowbite-react";
 import { HiTrash, HiPlus, HiRefresh, HiCash } from "react-icons/hi";
 import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
-import type { NewSaleFormData } from "../../types/sale";
+import { type NewSaleFormData } from "../../types/sale";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "../../db/db";
 
 const ProductService = () => {
   const {
@@ -29,6 +31,9 @@ const ProductService = () => {
 
   const watchedItems = useWatch({ control, name: "items" });
   const watchedTaxRate = watch("taxRate");
+
+  // 🛡️ Strategic Local Data: Fetch products from Dexie
+  const products = useLiveQuery(() => db.products.toArray());
 
   useEffect(() => {
     let currentSubtotal = 0;
@@ -99,7 +104,7 @@ const ProductService = () => {
 
   return (
     <div className="bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-200/50 dark:border-white/[0.05] rounded-sm p-4 shadow-xl mb-6">
-      <span className="font-bold text-brand-primary dark:text-brand-accent block mb-4 text-sm font-black uppercase tracking-[0.2em]">
+      <span className="font-bold text-brand-primary dark:text-brand-accent block mb-4 text-sm font-black  tracking-[0.2em]">
         Items/Services
       </span>
 
@@ -132,20 +137,50 @@ const ProductService = () => {
               <div className="mb-2 block">
                 <Label
                   htmlFor={`items.${index}.message`}
-                  className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                  Your message
+                  className="text-[10px] font-bold  tracking-widest text-gray-500">
+                  Product/Service
                 </Label>
               </div>
-              <Textarea
+              <TextInput
                 id={`items.${index}.message`}
-                placeholder="Leave a comment..."
-                rows={4}
+                placeholder="Type product name or select..."
                 {...register(`items.${index}.message`)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setValue(`items.${index}.message`, val);
+
+                  // 🚀 Logic: If value matches a datalist entry pattern, extract data
+                  if (val.includes(" | ID:")) {
+                    const [name, idPart, costPart, pricePart] =
+                      val.split(" | ");
+                    const id = idPart.replace("ID:", "");
+                    const cost = parseFloat(costPart.replace("COST:", ""));
+                    const price = parseFloat(pricePart.replace("PRICE:", ""));
+
+                    setValue(`items.${index}.productId`, id);
+                    setValue(`items.${index}.productName`, name);
+                    setValue(`items.${index}.message`, name);
+                    setValue(`items.${index}.costPerUnit`, cost);
+                    setValue(`items.${index}.pricePerUnit`, price);
+                  }
+                }}
                 color={errors.items?.[index]?.message ? "failure" : "gray"}
-                theme={textareaTheme}
+                theme={inputTheme}
+                list={`product-list-${index}`}
               />
+              <datalist id={`product-list-${index}`}>
+                {products?.map((prod) => (
+                  <option
+                    key={prod.id}
+                    value={`${prod.name} | ID:${prod.id} | COST:${prod.cost_price} | PRICE:${prod.selling_price}`}>
+                    UGX {new Intl.NumberFormat().format(prod.selling_price)}
+                  </option>
+                ))}
+              </datalist>
               {errors.items?.[index]?.message && (
-                <HelperText color="failure" className="mt-1 text-xs font-medium">
+                <HelperText
+                  color="failure"
+                  className="mt-1 text-xs font-medium">
                   {errors.items?.[index]?.message?.message}
                 </HelperText>
               )}
@@ -163,7 +198,7 @@ const ProductService = () => {
                 <Label
                   htmlFor={`items.${index}.quantity`}
                   color={errors.items?.[index]?.quantity ? "failure" : "gray"}
-                  className="text-[10px] font-bold uppercase tracking-widest block mb-1.5">
+                  className="text-[10px] font-bold  tracking-widest block mb-1.5">
                   Quantity
                 </Label>
                 <TextInput
@@ -175,7 +210,9 @@ const ProductService = () => {
                   theme={inputTheme}
                 />
                 {errors.items?.[index]?.quantity && (
-                  <HelperText color="failure" className="mt-1 text-xs font-medium">
+                  <HelperText
+                    color="failure"
+                    className="mt-1 text-xs font-medium">
                     {errors.items?.[index]?.quantity?.message}
                   </HelperText>
                 )}
@@ -183,8 +220,10 @@ const ProductService = () => {
               <div className="flex-1 min-w-[120px]">
                 <Label
                   htmlFor={`items.${index}.pricePerUnit`}
-                  color={errors.items?.[index]?.pricePerUnit ? "failure" : "gray"}
-                  className="text-[10px] font-bold uppercase tracking-widest block mb-1.5">
+                  color={
+                    errors.items?.[index]?.pricePerUnit ? "failure" : "gray"
+                  }
+                  className="text-[10px] font-bold  tracking-widest block mb-1.5">
                   Price per unit
                 </Label>
                 <TextInput
@@ -198,7 +237,9 @@ const ProductService = () => {
                   theme={inputTheme}
                 />
                 {errors.items?.[index]?.pricePerUnit && (
-                  <HelperText color="failure" className="mt-1 text-xs font-medium">
+                  <HelperText
+                    color="failure"
+                    className="mt-1 text-xs font-medium">
                     {errors.items?.[index]?.pricePerUnit?.message}
                   </HelperText>
                 )}
@@ -208,7 +249,7 @@ const ProductService = () => {
                   color={
                     errors.items?.[index]?.discountValue ? "failure" : "gray"
                   }
-                  className="text-[10px] font-bold uppercase tracking-widest block mb-1.5">
+                  className="text-[10px] font-bold  tracking-widest block mb-1.5">
                   Discount
                 </Label>
                 <div className="flex items-center gap-2">
@@ -226,14 +267,18 @@ const ProductService = () => {
                       type="number"
                       {...register(`items.${index}.discountValue`)}
                       color={
-                        errors.items?.[index]?.discountValue ? "failure" : "gray"
+                        errors.items?.[index]?.discountValue
+                          ? "failure"
+                          : "gray"
                       }
                       theme={inputTheme}
                     />
                   </div>
                 </div>
                 {errors.items?.[index]?.discountValue && (
-                  <HelperText color="failure" className="mt-1 text-xs font-medium">
+                  <HelperText
+                    color="failure"
+                    className="mt-1 text-xs font-medium">
                     {errors.items?.[index]?.discountValue?.message}
                   </HelperText>
                 )}
@@ -244,12 +289,9 @@ const ProductService = () => {
                 <Dropdown
                   inline
                   label={
-                    <Button
-                      size="xs"
-                      color="none"
-                      className="text-xs font-bold cursor-pointer text-brand-primary dark:text-brand-accent hover:bg-brand-primary/10 dark:hover:bg-brand-accent/10 rounded-sm">
+                    <span className="text-xs font-bold cursor-pointer text-brand-primary dark:text-brand-accent hover:bg-brand-primary/10 dark:hover:bg-brand-accent/10 rounded-sm px-2 py-1">
                       View/Edit
-                    </Button>
+                    </span>
                   }
                   arrowIcon={false}
                   theme={{
@@ -262,11 +304,11 @@ const ProductService = () => {
                     className="space-y-4"
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary dark:text-brand-accent border-b border-brand-primary/10 pb-2">
+                    <div className="text-[10px] font-black  tracking-[0.2em] text-brand-primary dark:text-brand-accent border-b border-brand-primary/10 pb-2">
                       Cost Details (Item {index + 1})
                     </div>
                     <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-gray-500 block mb-1.5">
+                      <Label className="text-[10px] font-bold  tracking-widest text-gray-500 block mb-1.5">
                         Cost per unit
                       </Label>
                       <TextInput
@@ -274,22 +316,26 @@ const ProductService = () => {
                         placeholder="0.00"
                         {...register(`items.${index}.costPerUnit`)}
                         color={
-                          errors.items?.[index]?.costPerUnit ? "failure" : "gray"
+                          errors.items?.[index]?.costPerUnit
+                            ? "failure"
+                            : "gray"
                         }
                         theme={inputTheme}
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       />
                       {errors.items?.[index]?.costPerUnit && (
-                        <HelperText color="failure" className="mt-1 text-xs font-medium">
+                        <HelperText
+                          color="failure"
+                          className="mt-1 text-xs font-medium">
                           {errors.items?.[index]?.costPerUnit?.message}
                         </HelperText>
                       )}
                     </div>
                     <div className="bg-brand-primary/5 dark:bg-white/[0.03] p-3 rounded-sm border border-brand-primary/10 dark:border-white/[0.05]">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                        Total Cost (for{" "}
-                        {watchedItems?.[index]?.quantity || 0} units)
+                      <div className="text-[10px] font-bold  tracking-widest text-gray-500">
+                        Total Cost (for {watchedItems?.[index]?.quantity || 0}{" "}
+                        units)
                       </div>
                       <div className="text-xl font-black text-brand-primary dark:text-brand-accent mt-1">
                         {new Intl.NumberFormat().format(
@@ -333,7 +379,7 @@ const ProductService = () => {
       <div className="mt-8 max-w-xs">
         <Label
           htmlFor="tax-rate"
-          className="text-xs font-black uppercase tracking-wider mb-2 block text-gray-500">
+          className="text-xs font-black  tracking-wider mb-2 block text-gray-500">
           Tax Rate (%)
         </Label>
         <TextInput
@@ -354,7 +400,7 @@ const ProductService = () => {
       {/* Summary Section - All values from State */}
       <div className="mt-6 space-y-3 bg-white/20 dark:bg-white/[0.02] p-4 rounded-sm border border-gray-100/30 dark:border-white/[0.05]">
         <div className="flex items-center justify-between text-sm">
-          <div className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-tighter text-xs">
+          <div className="text-gray-500 dark:text-gray-400 font-medium  tracking-tighter text-xs">
             Total Items
           </div>
           <div className="font-bold text-gray-900 dark:text-white">
@@ -362,15 +408,15 @@ const ProductService = () => {
           </div>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <div className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-tighter text-xs">
+          <div className="text-gray-500 dark:text-gray-400 font-medium  tracking-tighter text-xs">
             Subtotal
           </div>
-          <div className="font-bold text-gray-900 dark:text-white uppercase">
+          <div className="font-bold text-gray-900 dark:text-white ">
             {new Intl.NumberFormat().format(watch("subtotal"))}
           </div>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <div className="text-gray-500 dark:text-gray-400 font-medium uppercase tracking-tighter text-xs">
+          <div className="text-gray-500 dark:text-gray-400 font-medium  tracking-tighter text-xs">
             Tax ({watch("taxRate")}%)
           </div>
           <div className="font-bold text-red-600 dark:text-red-400">
@@ -379,7 +425,7 @@ const ProductService = () => {
         </div>
         <HR className="my-2 border-gray-100/50 dark:border-white/[0.05]" />
         <div className="flex items-center justify-between">
-          <div className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white">
+          <div className="text-base font-black  tracking-wider text-gray-900 dark:text-white">
             Grand Total
           </div>
           <div className="text-xl font-black text-brand-primary dark:text-brand-accent">

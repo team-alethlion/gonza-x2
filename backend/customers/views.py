@@ -21,13 +21,15 @@ class CustomerCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # 🛡️ SECURITY: Auto-assign agency from the creating user
-        agency_id = getattr(self.request.user, 'agency_id', None)
-        serializer.save(agency_id=agency_id)
+        # 🛡️ SECURITY: Auto-assign agency and branch
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        branch_id = self.request.data.get('branch') or self.request.data.get('branchId') or getattr(user, 'branch_id', None)
+        serializer.save(agency_id=agency_id, branch_id=branch_id, user=user)
 
     def get_queryset(self):
         # 🛡️ SECURITY: Strict Multi-tenant isolation
-        qs = super().get_queryset().select_related('branch', 'admin', 'category')
+        qs = super().get_queryset().select_related('branch', 'user', 'agency')
         
         user = self.request.user
         if user.is_authenticated:

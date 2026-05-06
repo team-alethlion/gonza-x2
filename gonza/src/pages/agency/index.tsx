@@ -11,13 +11,14 @@ import {
   HiPlus,
 } from "react-icons/hi";
 import { useAuthStore } from "../../store/useAuthStore";
-import { getApiUrl, CONFIG } from "../../config";
+import { CONFIG } from "../../config";
 import { NumberFormatter } from "../../utils/formatters";
 import AnalysisGraph from "../../components/dashboard/AnalysisGraph";
 import UpcommingCalendar from "../../components/dashboard/UpcommingCalendar";
+import { apiFetch } from "../../utils/api";
 
 const AgencyHome = () => {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [filter, setFilter] = useState("today");
@@ -48,20 +49,18 @@ const AgencyHome = () => {
 
   useEffect(() => {
     const fetchSummary = async () => {
-      if (!user?.branch?.id || !token) return;
+      if (!user?.branch?.id) return;
 
       setLoading(true);
       try {
-        const url = getApiUrl(`${CONFIG.API.CORE.BASE}analytics/summary/`);
+        const endpoint = `${CONFIG.API.CORE.BASE}analytics/summary/`;
         const params = new URLSearchParams({
           branchId: user.branch.id,
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         });
 
-        const res = await fetch(`${url}?${params}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await apiFetch(`${endpoint}?${params}`);
 
         if (res.ok) {
           const data = await res.json();
@@ -75,7 +74,7 @@ const AgencyHome = () => {
     };
 
     fetchSummary();
-  }, [user?.branch?.id, token, dateRange]);
+  }, [user?.branch?.id, dateRange]);
 
   const userName = user
     ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
@@ -92,9 +91,7 @@ const AgencyHome = () => {
       {/* head section */}
       <div>
         <div className="flex items-center justify-between p-4">
-          <span className="text-gray-900 dark:text-white uppercase">
-            {userName}
-          </span>
+          <span className="text-gray-900 dark:text-white ">{userName}</span>
           <button className="flex items-center justify-center text-white bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md border border-white/20 hover:bg-brand-primary rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 shadow-sm">
             <HiPlus className="mr-1 h-4 w-4" />
             new sale
@@ -138,7 +135,7 @@ const AgencyHome = () => {
                   <span className="text-sm">Total Sales</span>
                 </span>
               </div>
-              <div className="text-xl font-bold uppercase">
+              <div className="text-xl font-bold ">
                 {NumberFormatter.formatCurrency(summaryData?.totalSales)}
               </div>
               <div>
@@ -165,7 +162,7 @@ const AgencyHome = () => {
                   </Badge>
                 </span>
               </div>
-              <div className="text-xl font-bold uppercase">
+              <div className="text-xl font-bold ">
                 {NumberFormatter.formatCurrency(summaryData?.totalProfit)}
               </div>
               <div>
@@ -184,18 +181,18 @@ const AgencyHome = () => {
                 </span>
               </div>
               <div className="mt-1">
-                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 ">
                   PAID
                 </span>
-                <span className="text-lg font-bold uppercase">
+                <span className="text-lg font-bold ">
                   {NumberFormatter.formatCurrency(summaryData?.totalExpenses)}
                 </span>
               </div>
               <div className="mt-1">
-                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 ">
                   DUE
                 </span>
-                <span className="text-lg font-bold uppercase">
+                <span className="text-lg font-bold ">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
               </div>
@@ -209,7 +206,7 @@ const AgencyHome = () => {
                   <span className="text-sm">Inventory value</span>
                 </span>
               </div>
-              <div className="text-xl font-bold uppercase">
+              <div className="text-xl font-bold ">
                 {NumberFormatter.formatCurrency(
                   summaryData?.inventoryStats?.totalStockValue,
                 )}
@@ -230,18 +227,18 @@ const AgencyHome = () => {
                 </span>
               </div>
               <div className="mt-1">
-                <span className="text-[10px] font-bold text-brand-secondary block -mb-1 uppercase">
+                <span className="text-[10px] font-bold text-brand-secondary block -mb-1 ">
                   DEBTORS
                 </span>
-                <span className="text-lg font-bold uppercase">
+                <span className="text-lg font-bold ">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
               </div>
               <div className="mt-1">
-                <span className="text-[10px] font-bold text-gray-400 block -mb-1 uppercase">
+                <span className="text-[10px] font-bold text-gray-400 block -mb-1 ">
                   CREDITORS
                 </span>
-                <span className="text-lg font-bold uppercase">
+                <span className="text-lg font-bold ">
                   {NumberFormatter.formatCurrency(0)}
                 </span>
               </div>

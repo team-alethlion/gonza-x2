@@ -147,7 +147,7 @@ const SubscriptionHome = () => {
                   : "failure"
               }
               size="lg"
-              className="inline-flex items-center px-6 py-2.5 rounded-full font-bold uppercase tracking-wider">
+              className="inline-flex items-center px-6 py-2.5 rounded-full font-bold  tracking-wider">
               {status === "active" && "Active Subscription"}
               {status === "trial" && "Free Trial Active"}
               {status === "expired" && "Subscription Expired"}
@@ -213,7 +213,7 @@ const SubscriptionHome = () => {
                   : ""
               }`}>
               {currentPlanId === plan.id && (
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-secondary text-white text-xs font-bold px-4 py-1 rounded-full uppercase">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-secondary text-white text-xs font-bold px-4 py-1 rounded-full ">
                   Active Plan
                 </span>
               )}
@@ -229,10 +229,14 @@ const SubscriptionHome = () => {
               <div className="flex items-baseline text-brand-primary dark:text-white">
                 <span className="text-2xl font-semibold">UGX</span>
                 <span className="text-6xl font-black tracking-tight mx-1">
-                  {NumberFormatter.minimize(isYearly ? plan.yearly_price : plan.monthly_price).replace(/[A-Z]/g, '')}
+                  {NumberFormatter.minimize(
+                    isYearly ? plan.yearly_price : plan.monthly_price,
+                  ).replace(/[A-Z]/g, "")}
                 </span>
                 <span className="text-4xl font-bold">
-                  {NumberFormatter.minimize(isYearly ? plan.yearly_price : plan.monthly_price).replace(/[0-9.]/g, '')}
+                  {NumberFormatter.minimize(
+                    isYearly ? plan.yearly_price : plan.monthly_price,
+                  ).replace(/[0-9.]/g, "")}
                 </span>
                 <span className="ml-1 text-xl font-normal text-gray-500 dark:text-gray-400">
                   /{isYearly ? "year" : "month"}

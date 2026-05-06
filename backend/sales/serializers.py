@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SalesGoal, SaleCategory, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
+from .models import SalesGoal, SaleCategory, SaleSource, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
 
 class SalesReturnItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -26,6 +26,11 @@ class SalesGoalSerializer(serializers.ModelSerializer):
 class SaleCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleCategory
+        fields = '__all__'
+
+class SaleSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleSource
         fields = '__all__'
 
 class SaleItemSerializer(serializers.ModelSerializer):

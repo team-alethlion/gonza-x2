@@ -89,7 +89,7 @@ export function AgencyNavbar({ onToggleSidebar }: AgencyNavbarProps) {
           }>
           <DropdownHeader className="border-b border-gray-100/50 dark:border-white/[0.05] bg-gray-50/50 dark:bg-white/5">
             <div className="flex flex-col gap-1">
-              <span className="block text-[10px] font-black uppercase tracking-widest text-brand-secondary dark:text-brand-accent">
+              <span className="block text-[10px] font-black  tracking-widest text-brand-secondary dark:text-brand-accent">
                 {user?.branch?.name || "Main Branch"}
               </span>
               <span className="block text-sm font-bold text-gray-900 dark:text-white">

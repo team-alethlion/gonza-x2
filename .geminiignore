@@ -1,0 +1,38 @@
+# System & OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python & Backend
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv/
+backend/db.sqlite3
+backend/*.sqlite3-journal
+
+# Node.js & Frontend
+**/node_modules/
+gonza/dist/
+gonza/dist-ssr/
+gonza/build/
+gonza/.pnp.*
+gonza/.yarn/*
+
+# Logs & Temp
+*.log
+logs
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Workspace
+.vscode/
+.idea/
+.git/

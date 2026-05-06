@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
-from core.utils import gen_sg_id, gen_slc_id, gen_sa_id, gen_si_id, gen_ip_id, gen_sr_id, gen_sri_id
+from core.utils import gen_sg_id, gen_slc_id, gen_sls_id, gen_sa_id, gen_si_id, gen_ip_id, gen_sr_id, gen_sri_id
 
 class SalesGoal(models.Model):
     GOAL_PERIODS = (
@@ -63,6 +63,24 @@ class SaleCategory(models.Model):
         return self.name
 
 
+class SaleSource(models.Model):
+    id = models.CharField(max_length=30, primary_key=True, default=gen_sls_id)
+    name = models.CharField(max_length=200)
+    
+    agency = models.ForeignKey('core_app.Agency', on_delete=models.CASCADE, related_name='sale_sources', null=True, blank=True)
+    branch = models.ForeignKey('core_app.Branch', on_delete=models.CASCADE, related_name='sale_sources', null=True, blank=True)
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='sale_sources', null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Sale Sources"
+
+    def __str__(self):
+        return self.name
+
+
 class Sale(models.Model):
     STATUS_CHOICES = (
         ('PENDING', 'Pending'), ('PARTIAL', 'Partial'), 
@@ -103,6 +121,7 @@ class Sale(models.Model):
     
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='sales_created', null=True, blank=True)
     category = models.ForeignKey(SaleCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='sales')
+    source = models.ForeignKey(SaleSource, on_delete=models.SET_NULL, null=True, blank=True, related_name='sales')
     
     discount_reason = models.CharField(max_length=200, null=True, blank=True)
     shipping_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0)

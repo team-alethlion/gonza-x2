@@ -4,11 +4,12 @@ import Chart from "react-apexcharts";
 import { Card, Button, Spinner, Select } from "flowbite-react";
 import { HiOutlineChartBar } from "react-icons/hi";
 import { useAuthStore } from "../../store/useAuthStore";
-import { getApiUrl, CONFIG } from "../../config";
+import { CONFIG } from "../../config";
 import { NumberFormatter } from "../../utils/formatters";
+import { apiFetch } from "../../utils/api";
 
 const AnalysisGraph = () => {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">(
     "monthly",
@@ -30,12 +31,10 @@ const AnalysisGraph = () => {
   // Fetch available years
   useEffect(() => {
     const fetchYears = async () => {
-      if (!user?.branch?.id || !token) return;
+      if (!user?.branch?.id) return;
       try {
-        const url = getApiUrl(`${CONFIG.API.SALES.BASE}performance_years/`);
-        const res = await fetch(`${url}?branchId=${user.branch.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const endpoint = `${CONFIG.API.SALES.BASE}performance_years/?branchId=${user.branch.id}`;
+        const res = await apiFetch(endpoint);
         if (res.ok) {
           const years = await res.json();
           setAvailableYears(years);
@@ -45,25 +44,23 @@ const AnalysisGraph = () => {
       }
     };
     fetchYears();
-  }, [user?.branch?.id, token]);
+  }, [user?.branch?.id]);
 
   // Fetch chart data
   useEffect(() => {
     const fetchChartData = async () => {
-      if (!user?.branch?.id || !token) return;
+      if (!user?.branch?.id) return;
 
       setLoading(true);
       try {
-        const url = getApiUrl(`${CONFIG.API.SALES.BASE}performance_chart/`);
+        const endpoint = `${CONFIG.API.SALES.BASE}performance_chart/`;
         const params = new URLSearchParams({
           branchId: user.branch.id,
           timeframe: timeframe,
           year: selectedYear,
         });
 
-        const res = await fetch(`${url}?${params}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await apiFetch(`${endpoint}?${params}`);
 
         if (res.ok) {
           const data = await res.json();
@@ -92,7 +89,7 @@ const AnalysisGraph = () => {
     };
 
     fetchChartData();
-  }, [user?.branch?.id, token, timeframe, selectedYear]);
+  }, [user?.branch?.id, timeframe, selectedYear]);
 
   const options: any = {
     chart: {
@@ -229,7 +226,7 @@ const AnalysisGraph = () => {
           size="xs"
           color="none"
           onClick={() => setTimeframe("daily")}
-          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
+          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "daily"
               ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
               : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
@@ -240,7 +237,7 @@ const AnalysisGraph = () => {
           size="xs"
           color="none"
           onClick={() => setTimeframe("weekly")}
-          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
+          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "weekly"
               ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
               : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
@@ -251,7 +248,7 @@ const AnalysisGraph = () => {
           size="xs"
           color="none"
           onClick={() => setTimeframe("monthly")}
-          className={`text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-lg ${
+          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
             timeframe === "monthly"
               ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
               : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"

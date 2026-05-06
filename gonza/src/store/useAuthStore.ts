@@ -52,6 +52,7 @@ interface AuthState {
   logout: () => Promise<void>;
   setOnboarded: (status: boolean) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refresh: () => Promise<string | null>;
   init: () => Promise<void>;
 }
 
@@ -86,18 +87,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             return;
           }
 
-          // 3. If not onboarded or missing from DB, we MUST verify with backend
-          // before unblocking the UI to ensure they go to the right guard.
+          // 3. If not onboarded, verify and handle expired tokens
           try {
             const res = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
               headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
               const updatedUser = await res.json();
-              // Persist the verified status back to Dexie
               await get().login(updatedUser, token, refreshToken);
             } else if (res.status === 401) {
-              await get().logout();
+              const newToken = await get().refresh();
+              if (newToken) {
+                const retryRes = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
+                  headers: { Authorization: `Bearer ${newToken}` },
+                });
+                if (retryRes.ok) {
+                  const updatedUser = await retryRes.json();
+                  await get().login(updatedUser, newToken, refreshToken);
+                }
+              } else {
+                await get().logout();
+              }
             }
           } catch (e) {
             console.error("Onboarding verification failed during init:", e);
@@ -122,10 +132,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (res.ok) {
         const updatedUser = await res.json();
         await get().login(updatedUser, token, refreshToken!);
+      } else if (res.status === 401) {
+        await get().refresh();
       }
     } catch (e) {
       console.error("Failed to refresh profile:", e);
     }
+  },
+
+  refresh: async () => {
+    const { refreshToken } = get();
+    if (!refreshToken) return null;
+
+    try {
+      const res = await fetch(getApiUrl(CONFIG.API.AUTH.REFRESH), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const { access } = data;
+        const currentUser = get().user;
+        if (currentUser) {
+          await get().login(currentUser, access, refreshToken);
+        }
+        return access;
+      }
+    } catch (e) {
+      console.error("Token refresh failed:", e);
+    }
+    return null;
   },
 
   login: async (user, access, refresh) => {

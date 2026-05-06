@@ -86,7 +86,7 @@ const UpcommingCalendar = () => {
                 className="flex items-center gap-4 p-3 rounded-xl bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] hover:bg-white/60 dark:hover:bg-white/[0.05] hover:border-brand-primary/20 transition-all cursor-pointer group shadow-sm">
                 {/* Left: Date Block */}
                 <div className="flex flex-col items-center justify-center min-w-[50px] py-1 bg-white/80 dark:bg-brand-primary/10 rounded-lg shadow-sm border border-gray-100/50 dark:border-white/[0.05] group-hover:scale-105 transition-transform">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-brand-secondary/80">
+                  <span className="text-[10px] font-black  tracking-wider text-brand-secondary/80">
                     {appt.month}
                   </span>
                   <span className="text-lg font-black text-gray-900 dark:text-white/90 leading-none">
@@ -108,8 +108,8 @@ const UpcommingCalendar = () => {
                 {/* Right: Status Block */}
                 <div className="shrink-0">
                   <span
-                    className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${getStatusStyles(
-                      appt.status
+                    className={`text-[9px] font-black  tracking-wider px-2.5 py-1 rounded-full border ${getStatusStyles(
+                      appt.status,
                     )}`}>
                     {appt.status}
                   </span>

@@ -82,6 +82,7 @@ def gen_cl_id(): return generate_id("cl")
 # Sales
 def gen_sg_id(): return generate_id("sg")
 def gen_slc_id(): return generate_id("slc")
+def gen_sls_id(): return generate_id("sls")
 def gen_sa_id(): return generate_id("sa")
 def gen_si_id(): return generate_id("si")
 def gen_ip_id(): return generate_id("ip")

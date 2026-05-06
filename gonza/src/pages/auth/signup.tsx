@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Button, Checkbox, Label, TextInput, Alert } from "flowbite-react";
-import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiUser, HiCheck, HiInformationCircle, HiRefresh } from "react-icons/hi";
+import {
+  HiMail,
+  HiLockClosed,
+  HiEye,
+  HiEyeOff,
+  HiUser,
+  HiCheck,
+  HiInformationCircle,
+  HiRefresh,
+} from "react-icons/hi";
 import { FcGoogle } from "react-icons/fc";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -12,13 +21,13 @@ const Signup = () => {
   const [step, setStep] = useState(1); // 1: Details, 2: Verification
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
-  
+
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timer, setTimer] = useState(600); // 10 minutes in seconds
@@ -50,7 +59,7 @@ const Signup = () => {
   const handleInitiateSignup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
-    
+
     if (step === 1 && password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -58,11 +67,14 @@ const Signup = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/initiate_signup/`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        getApiUrl(`${CONFIG.API.USERS.BASE}users/initiate_signup/`),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        },
+      );
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to initiate signup");
@@ -84,14 +96,18 @@ const Signup = () => {
 
     try {
       // 1. Verify and Create User
-      const verifyRes = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/verify_signup/`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, code }),
-      });
+      const verifyRes = await fetch(
+        getApiUrl(`${CONFIG.API.USERS.BASE}users/verify_signup/`),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name, code }),
+        },
+      );
 
       const verifyData = await verifyRes.json();
-      if (!verifyRes.ok) throw new Error(verifyData.error || "Verification failed");
+      if (!verifyRes.ok)
+        throw new Error(verifyData.error || "Verification failed");
 
       // 2. Login to get tokens
       const tokenRes = await fetch(getApiUrl(CONFIG.API.AUTH.LOGIN), {
@@ -101,12 +117,18 @@ const Signup = () => {
       });
 
       const tokenData = await tokenRes.json();
-      if (!tokenRes.ok) throw new Error("Verification successful, but login failed. Please login manually.");
+      if (!tokenRes.ok)
+        throw new Error(
+          "Verification successful, but login failed. Please login manually.",
+        );
 
       // 3. Fetch full profile to get is_onboarded status
-      const userRes = await fetch(getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`), {
-        headers: { Authorization: `Bearer ${tokenData.access}` },
-      });
+      const userRes = await fetch(
+        getApiUrl(`${CONFIG.API.USERS.BASE}users/me/`),
+        {
+          headers: { Authorization: `Bearer ${tokenData.access}` },
+        },
+      );
       const userData = await userRes.json();
 
       // 4. Update store and redirect
@@ -128,8 +150,8 @@ const Signup = () => {
             {step === 1 ? "Create Account" : "Verify Email"}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {step === 1 
-              ? "Join us to start managing your business today." 
+            {step === 1
+              ? "Join us to start managing your business today."
               : `We've sent a 6-digit code to ${email}`}
           </p>
         </div>
@@ -142,22 +164,25 @@ const Signup = () => {
 
         {step === 1 ? (
           <>
-            <Button 
-              color={mode === "dark" ? "gray" : "light"} 
+            <Button
+              color={mode === "dark" ? "gray" : "light"}
               className="w-full border-gray-300 dark:border-gray-600"
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <FcGoogle className="mr-2 h-5 w-5" />
               Continue with Google
             </Button>
 
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
-              <span className="text-sm text-gray-500 dark:text-gray-400 uppercase">or sign up with email</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 ">
+                or sign up with email
+              </span>
               <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
             </div>
 
-            <form className="flex flex-col gap-4" onSubmit={handleInitiateSignup}>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={handleInitiateSignup}>
               <div>
                 <div className="mb-2 block">
                   <Label htmlFor="name" value="Full Name" />
@@ -210,9 +235,12 @@ const Signup = () => {
                     type="button"
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400"
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={isSubmitting}
-                  >
-                    {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                    disabled={isSubmitting}>
+                    {showPassword ? (
+                      <HiEyeOff className="h-5 w-5" />
+                    ) : (
+                      <HiEye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -236,9 +264,12 @@ const Signup = () => {
                     type="button"
                     className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-400"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    disabled={isSubmitting}
-                  >
-                    {showConfirmPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                    disabled={isSubmitting}>
+                    {showConfirmPassword ? (
+                      <HiEyeOff className="h-5 w-5" />
+                    ) : (
+                      <HiEye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -246,17 +277,18 @@ const Signup = () => {
                 <Checkbox id="agree" required />
                 <Label htmlFor="agree" className="flex text-sm">
                   I agree with the&nbsp;
-                  <RouterLink href="#" className="text-[#252861] hover:underline dark:text-[#80ced7]">
+                  <RouterLink
+                    href="#"
+                    className="text-[#252861] hover:underline dark:text-[#80ced7]">
                     terms and conditions
                   </RouterLink>
                 </Label>
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 color="primary"
                 isProcessing={isSubmitting}
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 Register new account
               </Button>
             </form>
@@ -284,7 +316,10 @@ const Signup = () => {
             <div className="text-center py-2">
               {timer > 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Code expires in <span className="font-bold text-[#f05a2b]">{formatTime(timer)}</span>
+                  Code expires in{" "}
+                  <span className="font-bold text-[#f05a2b]">
+                    {formatTime(timer)}
+                  </span>
                 </p>
               ) : (
                 <p className="text-sm text-red-500 font-medium">
@@ -293,12 +328,11 @@ const Signup = () => {
               )}
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               color="primary"
               isProcessing={isSubmitting}
-              disabled={isSubmitting || timer === 0}
-            >
+              disabled={isSubmitting || timer === 0}>
               Verify & Complete Signup
             </Button>
 
@@ -308,18 +342,20 @@ const Signup = () => {
                 color="light"
                 onClick={() => handleInitiateSignup()}
                 disabled={isSubmitting || !canResend}
-                className="w-full"
-              >
-                <HiRefresh className={`mr-2 h-4 w-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+                className="w-full">
+                <HiRefresh
+                  className={`mr-2 h-4 w-4 ${
+                    isSubmitting ? "animate-spin" : ""
+                  }`}
+                />
                 Resend Code
               </Button>
-              
-              <button 
-                type="button" 
-                onClick={() => setStep(1)} 
+
+              <button
+                type="button"
+                onClick={() => setStep(1)}
                 className="text-sm text-gray-500 hover:underline"
-                disabled={isSubmitting}
-              >
+                disabled={isSubmitting}>
                 Go back to details
               </button>
             </div>
@@ -328,14 +364,21 @@ const Signup = () => {
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Already have an account?{" "}
-          <RouterLink href="/auth/login" className="font-medium text-[#252861] hover:underline dark:text-[#80ced7]">
+          <RouterLink
+            href="/auth/login"
+            className="font-medium text-[#252861] hover:underline dark:text-[#80ced7]">
             Sign In
           </RouterLink>
         </p>
 
         <div className="text-center border-t border-gray-100 dark:border-gray-700 pt-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Need help? <RouterLink href="#" className="text-[#252861] hover:underline dark:text-[#80ced7]">Contact support</RouterLink>
+            Need help?{" "}
+            <RouterLink
+              href="#"
+              className="text-[#252861] hover:underline dark:text-[#80ced7]">
+              Contact support
+            </RouterLink>
           </p>
         </div>
       </div>

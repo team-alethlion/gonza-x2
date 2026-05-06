@@ -58,6 +58,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
             qs = qs.filter(branch_id=branch_id)
         return qs
 
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        user = request.user
+        
+        # 🛡️ SECURITY: Force current user, agency, and branch
+        data['user'] = user.id
+        data['agency'] = getattr(user, 'agency_id', None)
+        if not data.get('branch'):
+            data['branch'] = data.get('branchId') or getattr(user, 'branch_id', None)
+        
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer

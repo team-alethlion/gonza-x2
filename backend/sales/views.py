@@ -8,10 +8,10 @@ from django.utils import timezone
 from datetime import datetime, date
 from decimal import Decimal
 
-from .models import SalesGoal, SaleCategory, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
+from .models import SalesGoal, SaleCategory, SaleSource, Sale, SaleItem, InstallmentPayment, SalesReturn, SalesReturnItem
 from .filters import SaleFilter
 from .serializers import (
-    SalesGoalSerializer, SaleCategorySerializer,
+    SalesGoalSerializer, SaleCategorySerializer, SaleSourceSerializer,
     SaleSerializer, SaleItemSerializer, InstallmentPaymentSerializer,
     SalesReturnSerializer, SalesReturnItemSerializer
 )
@@ -96,6 +96,33 @@ class SaleCategoryViewSet(viewsets.ModelViewSet):
     queryset = SaleCategory.objects.all()
     serializer_class = SaleCategorySerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # 🛡️ SECURITY: Auto-assign agency and branch
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        branch_id = self.request.data.get('branch') or self.request.data.get('branchId') or getattr(user, 'branch_id', None)
+        serializer.save(agency_id=agency_id, branch_id=branch_id, user=user)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        branch_id = self.request.query_params.get('branchId')
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        return qs.order_by('-created_at')
+
+
+class SaleSourceViewSet(viewsets.ModelViewSet):
+    queryset = SaleSource.objects.all()
+    serializer_class = SaleSourceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # 🛡️ SECURITY: Auto-assign agency and branch
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        branch_id = self.request.data.get('branch') or self.request.data.get('branchId') or getattr(user, 'branch_id', None)
+        serializer.save(agency_id=agency_id, branch_id=branch_id, user=user)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -252,6 +279,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             customer_address=data.get('customerAddress'),
             customer_id=customer_id,
             category_id=data.get('categoryId'),
+            source_id=data.get('saleSourceId'),
             status=final_status,
             amount_paid=pay['amount_paid'],
             balance_due=pay['balance_due'],
@@ -819,6 +847,15 @@ class SaleItemViewSet(viewsets.ModelViewSet):
     serializer_class = SaleItemSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        qs = super().get_queryset().filter(agency_id=agency_id)
+        branch_id = self.request.query_params.get('branchId')
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        return qs
+
 from .logic.returns import process_sales_return
 from .logic.installments import (
     process_installment_payment, 
@@ -833,8 +870,11 @@ class SalesReturnViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         branch_id = self.request.query_params.get('branchId') or self.request.user.branch_id
-        qs = super().get_queryset().filter(branch_id=branch_id).select_related('sale', 'user')
-        return qs.order_by('-date')
+        updated_at_gte = self.request.query_params.get('updated_at__gte')
+        qs = super().get_queryset().filter(branch_id=branch_id)
+        if updated_at_gte:
+            qs = qs.filter(updated_at__gte=updated_at_gte)
+        return qs.select_related('sale', 'user').order_by('-date')
 
     def create(self, request, *args, **kwargs):
         sale_id = request.data.get('sale_id')
@@ -860,6 +900,25 @@ class SalesReturnViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
+class SalesReturnItemViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = SalesReturnItem.objects.all()
+    serializer_class = SalesReturnItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        branch_id = self.request.query_params.get('branchId')
+        updated_at_gte = self.request.query_params.get('updated_at__gte')
+        
+        # Filter via the related sales return's branch
+        if branch_id:
+            qs = qs.filter(sales_return__branch_id=branch_id)
+        if updated_at_gte:
+            qs = qs.filter(updated_at__gte=updated_at_gte)
+            
+        return qs
+
+
 class InstallmentPaymentViewSet(viewsets.ModelViewSet):
     queryset = InstallmentPayment.objects.all()
     serializer_class = InstallmentPaymentSerializer
@@ -869,8 +928,12 @@ class InstallmentPaymentViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         sale_id = self.request.query_params.get('saleId')
         branch_id = self.request.query_params.get('branchId')
+        updated_at_gte = self.request.query_params.get('updated_at__gte')
+
         if sale_id: qs = qs.filter(sale_id=sale_id)
         if branch_id: qs = qs.filter(branch_id=branch_id)
+        if updated_at_gte: qs = qs.filter(updated_at__gte=updated_at_gte)
+
         return qs.order_by('-date')
 
     def create(self, request, *args, **kwargs):

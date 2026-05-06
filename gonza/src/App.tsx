@@ -21,6 +21,7 @@ import { OnboardingGuard } from "./components/auth/OnboardingGuard";
 // Import Layouts
 import PublicLayout from "./components/layouts/PublicLayout";
 import AgencyLayout from "./components/layouts/AgencyLayout";
+import SalesLayout from "./components/layouts/SalesLayout";
 import SubscriptionLayout from "./components/layouts/SubscriptionLayout";
 import OnboardingLayout from "./components/layouts/OnboardingLayout";
 import AuthLayout from "./components/layouts/AuthLayout";
@@ -52,6 +53,13 @@ function App() {
     const agencyRoutes = routes.filter(
       (r) => r.path?.startsWith("agency") || r.path === "agency",
     );
+    const agencyBaseRoutes = agencyRoutes.filter(
+      (r) => !r.path?.startsWith("agency/sales"),
+    );
+    const agencySalesRoutes = agencyRoutes.filter(
+      (r) => r.path?.startsWith("agency/sales"),
+    );
+
     const subscriptionRoutes = routes.filter(
       (r) => r.path?.startsWith("subscription") || r.path === "subscription",
     );
@@ -87,7 +95,14 @@ function App() {
           </AuthGuard>
         ),
         errorElement: <ErrorPage />,
-        children: mapRoutes(agencyRoutes, "agency"),
+        children: [
+          ...mapRoutes(agencyBaseRoutes, "agency"),
+          {
+            path: "sales",
+            element: <SalesLayout />,
+            children: mapRoutes(agencySalesRoutes, "agency/sales"),
+          },
+        ],
       },
       {
         path: "/subscription",

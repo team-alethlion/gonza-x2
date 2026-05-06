@@ -1,16 +1,18 @@
 import * as z from "zod";
 
 export const customerItemSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(2, "Customer name is required"),
   address1: z.string().min(5, "Address is required"),
   contact: z.string().min(10, "Valid contact is required"),
   email: z.string().email("Invalid email address"),
-  address2: z.string().min(5, "Detailed address is required"),
   category: z.string().min(1, "Please select a category"),
 });
 
 export const productItemSchema = z.object({
   id: z.string(),
+  productId: z.string().optional(),
+  productName: z.string().optional(),
   message: z.string().min(1, "Product description is required"),
   productAppend: z.string().optional(),
   quantity: z.coerce.number().min(0.01, "Quantity must be > 0"),
@@ -30,6 +32,12 @@ export const newSaleSchema = z.object({
   taxAmount: z.number(),
   grandTotal: z.number(),
   totalItems: z.number(),
+  paymentStatus: z.enum(["Paid", "NOT PAID", "Installment Sale"]).default("Paid"),
+  linkToCash: z.boolean().default(true),
+  cashAccountId: z.string().optional(),
+  saleSource: z.string().optional(),
+  notes: z.string().optional(),
+  shippingCost: z.coerce.number().default(0),
   receiptOptions: z.object({
     showReceipt: z.boolean(),
     sendEmail: z.boolean(),

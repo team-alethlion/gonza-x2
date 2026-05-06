@@ -67,7 +67,7 @@ export const PageLoader: React.FC = () => {
         </p>
       </div>
 
-      <div className="absolute bottom-12 text-gray-400 dark:text-gray-600 text-xs font-medium uppercase tracking-widest">
+      <div className="absolute bottom-12 text-gray-400 dark:text-gray-600 text-xs font-medium  tracking-widest">
         Built for Growth
       </div>
     </div>
