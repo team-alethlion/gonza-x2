@@ -18,7 +18,9 @@ const FinancialOverview = () => {
       expensesQuery = db.expenses.where("branch").equals(branchId);
     }
 
-    const sales = (await salesQuery.toArray()).filter(s => s.status !== "QUOTE");
+    const sales = (await salesQuery.toArray()).filter(
+      (s) => s.status !== "QUOTE",
+    );
     const expenses = await expensesQuery.toArray();
 
     const totalSales = sales.reduce((sum, s) => sum + (s.total_amount || 0), 0);
@@ -59,7 +61,12 @@ const FinancialOverview = () => {
     dataLabels: { enabled: false },
     colors: ["#3B82F6", "#F59E0B", "#EF4444", "#10B981"],
     xaxis: {
-      categories: data?.map((d) => d.name) || ["Sales", "Costs", "Expenses", "Profits"],
+      categories: data?.map((d) => d.name) || [
+        "Sales",
+        "Costs",
+        "Expenses",
+        "Profits",
+      ],
       axisBorder: { show: false },
       labels: {
         style: {
@@ -82,7 +89,8 @@ const FinancialOverview = () => {
       theme: "dark",
       style: { fontSize: "11px" },
       y: {
-        formatter: (val: number) => `UGX ${new Intl.NumberFormat().format(val)}`,
+        formatter: (val: number) =>
+          `UGX ${new Intl.NumberFormat().format(val)}`,
       },
     },
     legend: { show: false },
@@ -91,8 +99,12 @@ const FinancialOverview = () => {
   return (
     <div className="financial_overview p-6 rounded-sm bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl">
       <div>
-        <span className="text-lg font-bold text-gray-900 dark:text-white">Financial Overview</span>
-        <p className="text-sm text-gray-500">Sales, costs, expenses, and profits (excluding quotes)</p>
+        <span className="text-lg font-bold text-gray-900 dark:text-white">
+          Financial Overview
+        </span>
+        <p className="text-sm text-gray-500">
+          Sales, costs, expenses, and profits (excluding quotes)
+        </p>
       </div>
       <div className="row mt-4">
         <div className="mixed-chart">
