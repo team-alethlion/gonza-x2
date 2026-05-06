@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import Chart from "react-apexcharts";
-import { Card } from "flowbite-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -29,9 +28,9 @@ const FinancialOverview = () => {
 
     return [
       { name: "Sales", value: totalSales },
-      { name: "Cost of Goods", value: totalCost },
+      { name: "Costs", value: totalCost },
       { name: "Expenses", value: totalExpenses },
-      { name: "Net Profit", value: totalProfit },
+      { name: "Profits", value: totalProfit },
     ];
   }, [branchId]);
 
@@ -47,64 +46,66 @@ const FinancialOverview = () => {
       type: "bar",
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: "inherit",
     },
     plotOptions: {
       bar: {
-        borderRadius: 4,
+        borderRadius: 2,
         horizontal: false,
-        columnWidth: "55%",
+        columnWidth: "40%",
         distributed: true,
       },
     },
     dataLabels: { enabled: false },
     colors: ["#3B82F6", "#F59E0B", "#EF4444", "#10B981"],
     xaxis: {
-      categories: data?.map((d) => d.name) || ["Sales", "Cost", "Expenses", "Profit"],
+      categories: data?.map((d) => d.name) || ["Sales", "Costs", "Expenses", "Profits"],
       axisBorder: { show: false },
       labels: {
         style: {
           colors: "#9CA3AF",
-          fontSize: "10px",
-          fontWeight: 600,
+          fontSize: "11px",
         },
       },
     },
     yaxis: {
       labels: {
-        style: { colors: "#9CA3AF" },
+        style: { colors: "#9CA3AF", fontSize: "11px" },
         formatter: (val: number) => new Intl.NumberFormat().format(val),
       },
     },
     grid: {
       borderColor: "rgba(156, 163, 175, 0.1)",
-      strokeDashArray: 4,
+      strokeDashArray: 3,
     },
     tooltip: {
       theme: "dark",
+      style: { fontSize: "11px" },
       y: {
         formatter: (val: number) => `UGX ${new Intl.NumberFormat().format(val)}`,
       },
     },
     legend: { show: false },
-    theme: { mode: "dark" },
   };
 
   return (
-    <Card className="bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl mt-6">
-      <div className="flex flex-col">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-            Financial Overview
-          </h3>
-          <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-medium">
-            Sales, costs, expenses, and profits (excluding quotes)
-          </p>
-        </div>
-        <div className="h-[300px] w-full">
-          <Chart options={options} series={series} type="bar" height="100%" />
+    <div className="financial_overview p-6 rounded-sm bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl">
+      <div>
+        <span className="text-lg font-bold text-gray-900 dark:text-white">Financial Overview</span>
+        <p className="text-sm text-gray-500">Sales, costs, expenses, and profits (excluding quotes)</p>
+      </div>
+      <div className="row mt-4">
+        <div className="mixed-chart">
+          <Chart
+            options={options}
+            series={series}
+            type="bar"
+            width="100%"
+            height="250"
+          />
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
