@@ -1,71 +1,73 @@
 import React, { useState, useEffect } from "react";
-import SpeedTest from "@cloudflare/speedtest";
-import { Badge, Button, Spinner } from "flowbite-react";
+import { Badge, Spinner } from "flowbite-react";
 import { HiRefresh } from "react-icons/hi";
 
 const NetworkSpeedTest = () => {
   const [speed, setSpeed] = useState<string>("Detecting...");
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const runTest = () => {
-    setIsRunning(true);
-    setSpeed("Testing...");
+  const getSpeedEstimate = () => {
+    const connection = 
+      // @ts-expect-error - navigator.connection is not standard
+      navigator.connection || 
+      // @ts-expect-error - vendor prefix
+      navigator.mozConnection || 
+      // @ts-expect-error - vendor prefix
+      navigator.webkitConnection;
 
-    const engine = new SpeedTest({
-      autoStart: true,
-      // We only want a quick check for the sidebar
-      measureUpload: false,
-    });
+    if (connection && connection.downlink) {
+      // The browser's downlink is a passive estimate in Mbps
+      // It is often capped at 10Mbps to prevent fingerprinting
+      return `${connection.downlink} Mbps`;
+    }
+    return "Unknown";
+  };
 
-    engine.onResultsChange = () => {
-      const results = engine.results.getSummary();
-      if (results.download) {
-        // Mbps
-        const mbps = (results.download / 1000000).toFixed(2);
-        setSpeed(`${mbps} Mbps`);
-      }
-    };
-
-    engine.onFinish = () => {
-      setIsRunning(false);
-    };
-
-    engine.onError = (err) => {
-      console.error("Speed test error:", err);
-      setSpeed("Error");
-      setIsRunning(false);
-    };
+  const updateSpeed = () => {
+    setIsRefreshing(true);
+    // Artificial delay to make the refresh feel "real" and prevent UI flickering
+    setTimeout(() => {
+      setSpeed(getSpeedEstimate());
+      setIsRefreshing(false);
+    }, 600);
   };
 
   useEffect(() => {
-    // Run an initial test on mount
-    runTest();
+    setSpeed(getSpeedEstimate());
+
+    const connection = 
+      // @ts-expect-error - navigator.connection is not standard
+      navigator.connection || 
+      // @ts-expect-error - vendor prefix
+      navigator.mozConnection || 
+      // @ts-expect-error - vendor prefix
+      navigator.webkitConnection;
+
+    if (connection && connection.addEventListener) {
+      connection.addEventListener("change", updateSpeed);
+      return () => connection.removeEventListener("change", updateSpeed);
+    }
   }, []);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-h-[90px] flex flex-col justify-between">
       <div className="flex items-center justify-between">
-        <Badge color="warning" className="rounded-sm">
-          Network Speed
-        </Badge>
-        <button
-          onClick={runTest}
-          disabled={isRunning}
+        <Badge color="warning" className="rounded-sm">Network Speed</Badge>
+        <button 
+          onClick={updateSpeed} 
+          disabled={isRefreshing}
           className="p-1 rounded-sm hover:bg-white/10 text-white/60 transition-all"
-          title="Refresh Speed">
-          {isRunning ? (
-            <Spinner size="xs" />
-          ) : (
-            <HiRefresh className="w-3 h-3" />
-          )}
+          title="Refresh Estimate"
+        >
+          {isRefreshing ? <Spinner size="xs" /> : <HiRefresh className="w-3 h-3" />}
         </button>
       </div>
       <div className="text-sm text-[#80ced7] dark:text-[#80ced7]">
-        Current download:
+        Current estimate:{" "}
         <span className="font-bold text-white tracking-tight">{speed}</span>
       </div>
       <div className="text-[10px] text-white/40 leading-relaxed italic">
-        Real-time metrics via Cloudflare to optimize syncing.
+        Zero-data background estimate for sync performance.
       </div>
     </div>
   );
