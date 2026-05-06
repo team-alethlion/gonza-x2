@@ -96,22 +96,29 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
         {/* 🚀 Scaling Wrapper */}
         <div className="p-4 sm:p-8 w-full flex justify-center overflow-x-hidden">
           <div
-            className="bg-white shadow-2xl origin-top transition-all duration-500 ease-in-out"
+            className={`${
+              receiptType === "A4"
+                ? "bg-white shadow-2xl"
+                : "bg-transparent shadow-none"
+            } origin-top transition-all duration-500 ease-in-out`}
             style={{
-              width: receiptType === "A4" ? "210mm" : "80mm",
-              minHeight: receiptType === "A4" ? "297mm" : "150mm",
-              transform: receiptType === "A4" ? "scale(0.65)" : "scale(1.2)",
+              width: receiptType === "A4" ? "210mm" : "302px",
+              minHeight: receiptType === "A4" ? "297mm" : "auto",
+              transform: receiptType === "A4" ? "scale(0.65)" : "scale(1.1)",
               marginBottom: receiptType === "A4" ? "-100mm" : "20mm",
-              marginTop: receiptType === "Thermal" ? "20px" : "0",
+              marginTop: receiptType === "Thermal" ? "10px" : "0",
             }}>
             <div
               ref={receiptRef}
-              className="prose max-w-none bg-white text-black"
+              className={`${
+                receiptType === "A4" ? "prose max-w-none bg-white" : ""
+              } text-black`}
               style={{
-                padding: receiptType === "A4" ? "20mm" : "5mm",
-                width: receiptType === "A4" ? "210mm" : "80mm",
-                minHeight: receiptType === "A4" ? "297mm" : "150mm",
+                padding: receiptType === "A4" ? "20mm" : "0",
+                width: receiptType === "A4" ? "210mm" : "302px",
+                minHeight: receiptType === "A4" ? "297mm" : "auto",
                 boxSizing: "border-box",
+                backgroundColor: "white",
               }}
               dangerouslySetInnerHTML={{
                 __html:
