@@ -18,6 +18,39 @@ interface SalePreviewProps {
   data: NewSaleFormData;
 }
 
+const customModalTheme = {
+  root: {
+    base: "fixed inset-x-0 top-0 z-50 h-screen overflow-y-auto overflow-x-hidden md:inset-0 md:h-full",
+    show: {
+      on: "flex bg-gray-900/50 dark:bg-gray-900/80 backdrop-blur-sm",
+      off: "hidden",
+    },
+    sizes: {
+      "4xl": "max-w-4xl",
+      "7xl": "max-w-7xl",
+    },
+  },
+  content: {
+    base: "relative h-full w-full p-4 md:h-auto",
+    inner:
+      "relative rounded-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200 dark:border-white/[0.1] shadow-2xl flex flex-col",
+  },
+  body: {
+    base: "flex-1 overflow-auto p-0",
+  },
+  header: {
+    base: "flex items-start justify-between rounded-t border-b border-gray-100/50 dark:border-white/[0.05] p-5",
+    title: "text-xl font-medium text-gray-900 dark:text-white",
+    close: {
+      base: "ms-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white transition-all",
+      icon: "h-5 w-5",
+    },
+  },
+  footer: {
+    base: "flex items-center gap-2 rounded-b border-t border-gray-100/50 dark:border-white/[0.05] p-6 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md",
+  },
+};
+
 const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [receiptType, setReceiptType] = useState<"A4" | "Thermal">("A4");
@@ -40,7 +73,9 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
       },
       jsPDF: {
         unit: "mm",
-        format: isThermal ? [80, Math.max(200, (element.offsetHeight * 25.4) / 96 + 20)] : "a4",
+        format: isThermal
+          ? [80, Math.max(200, (element.offsetHeight * 25.4) / 96 + 20)]
+          : "a4",
         orientation: "portrait",
       },
     };
@@ -52,19 +87,14 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
     <Modal
       show={show}
       onClose={onClose}
-      size="4xl"
-      theme={{
-        content: {
-          inner:
-            "relative rounded-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200 dark:border-white/[0.1] shadow-2xl flex flex-col",
-        },
-      }}>
-      <ModalHeader className="border-b border-gray-100/50 dark:border-white/[0.05] p-4">
-        <div className="flex items-center justify-between w-full pr-8">
+      size="7xl"
+      theme={customModalTheme}>
+      <ModalHeader>
+        <div className="flex items-center justify-between !w-full pr-8">
           <span className="text-sm font-black uppercase tracking-[0.2em] text-brand-primary dark:text-brand-accent">
             Receipt Preview
           </span>
-          
+
           <div className="flex p-1 bg-gray-100/50 dark:bg-black/40 rounded-sm border border-gray-200/50 dark:border-white/5">
             <button
               onClick={() => setReceiptType("A4")}
