@@ -27,7 +27,7 @@ const theme = {
     },
   },
   head: {
-    base: "group/head text-[10px] uppercase text-gray-700 dark:text-gray-400 font-bold tracking-[0.2em]",
+    base: "group/head text-[10px] capitalize text-gray-700 dark:text-gray-400 tracking-[0.2em]",
     cell: {
       base: "bg-gray-50/50 px-6 py-3 group-first/head:first:rounded-tl-sm group-first/head:last:rounded-tr-sm dark:bg-black/20",
     },
@@ -42,16 +42,14 @@ const theme = {
 
 export function RecentSales() {
   const sales = useLiveQuery(async () => {
-    return await db.sales
-      .orderBy("date")
-      .reverse()
-      .limit(20)
-      .toArray();
+    return await db.sales.orderBy("date").reverse().limit(20).toArray();
   }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "COMPLETED":
+        return "success";
+      case "PAID":
         return "success";
       case "UNPAID":
         return "failure";
@@ -66,12 +64,16 @@ export function RecentSales() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recent Transactions</h3>
-        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Latest 20 activities</p>
+        <h3 className="text-lg text-gray-900 dark:text-white">
+          Recent Transactions
+        </h3>
+        <p className="text-[10px] text-gray-500 capitalize tracking-widest">
+          Latest 20 activities
+        </p>
       </div>
-      
+
       <div className="overflow-x-auto custom-scrollbar">
         <Table theme={theme} hoverable>
           <TableHead>
@@ -84,7 +86,7 @@ export function RecentSales() {
           <TableBody className="divide-y divide-gray-100/10">
             {sales?.map((sale) => (
               <TableRow key={sale.id} className="bg-transparent">
-                <TableCell className="whitespace-nowrap font-bold text-gray-900 dark:text-white">
+                <TableCell className="whitespace-nowrap text-gray-900 dark:text-white">
                   {sale.receipt_number || sale.id.substring(0, 8)}
                 </TableCell>
                 <TableCell className="font-medium">
@@ -97,19 +99,25 @@ export function RecentSales() {
                     year: "numeric",
                   })}
                 </TableCell>
-                <TableCell className="font-black text-gray-900 dark:text-white">
+                <TableCell className=" text-gray-900 dark:text-white">
                   {NumberFormatter.formatCurrency(sale.total_amount)}
                 </TableCell>
                 <TableCell>
-                  <Badge color={getStatusColor(sale.status)} className="rounded-sm uppercase text-[9px] px-2 font-black tracking-wider">
-                    {sale.status}
+                  <Badge
+                    color={getStatusColor(sale.status)}
+                    className="rounded-sm uppercase text-[9px] px-2  tracking-wider">
+                    {sale.status.toLowerCase() === "completed"
+                      ? "Paid"
+                      : sale.status}
                   </Badge>
                 </TableCell>
               </TableRow>
             ))}
             {(!sales || sales.length === 0) && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-10 text-gray-400 italic">
                   No recent sales found
                 </TableCell>
               </TableRow>

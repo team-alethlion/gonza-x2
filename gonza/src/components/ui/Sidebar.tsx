@@ -267,7 +267,7 @@ export function AppSidebar({
           </SidebarItems>
 
           {!collapsed && (
-            <SidebarCTA>
+            <SidebarCTA className="!rounded-sm !mb-4 !bg-white/40 dark:!bg-white/[0.03] !backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-sm">
               <NetworkSpeedTest />
             </SidebarCTA>
           )}
