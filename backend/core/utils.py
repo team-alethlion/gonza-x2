@@ -51,6 +51,7 @@ def gen_st_id(): return generate_id("st")
 def gen_tc_id(): return generate_id("tc")
 def gen_ta_id(): return generate_id("ta")
 def gen_ah_id(): return generate_id("ah")
+def gen_ap_id(): return generate_id("ap")
 
 # Inventory
 def gen_su_id(): return generate_id("su")

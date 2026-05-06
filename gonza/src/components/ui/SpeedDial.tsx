@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Tooltip } from "flowbite-react";
 import { 
   HiPlus, 
@@ -6,18 +7,51 @@ import {
   HiCreditCard, 
   HiCube, 
   HiUsers, 
-  HiTrendingDown 
+  HiTrendingDown,
+  HiClipboardList,
+  HiDocumentText
 } from "react-icons/hi";
 
 const SpeedDial = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const actions = [
-    { icon: HiCurrencyDollar, label: "Create Sale", onClick: () => console.log("Create Sale clicked") },
-    { icon: HiCreditCard, label: "Create Installment Sale", onClick: () => console.log("Installment Sale clicked") },
-    { icon: HiCube, label: "Add Product", onClick: () => console.log("Add Product clicked") },
-    { icon: HiUsers, label: "Add Customer", onClick: () => console.log("Add Customer clicked") },
-    { icon: HiTrendingDown, label: "Add Expense", onClick: () => console.log("Add Expense clicked") },
+    { 
+      icon: HiCurrencyDollar, 
+      label: "Create Sale", 
+      onClick: () => navigate("/agency/sales/new-sale?create=new") 
+    },
+    { 
+      icon: HiDocumentText, 
+      label: "Create Invoice", 
+      onClick: () => navigate("/agency/sales/new-sale?create=invoice") 
+    },
+    { 
+      icon: HiCreditCard, 
+      label: "Installment Sale", 
+      onClick: () => navigate("/agency/sales/new-sale?create=installment") 
+    },
+    { 
+      icon: HiClipboardList, 
+      label: "Create Quotation", 
+      onClick: () => navigate("/agency/sales/new-sale?create=quotation") 
+    },
+    { 
+      icon: HiCube, 
+      label: "Inventory", 
+      onClick: () => navigate("/agency/inventory/products") 
+    },
+    { 
+      icon: HiUsers, 
+      label: "Customers", 
+      onClick: () => navigate("/agency/customers/list") 
+    },
+    { 
+      icon: HiTrendingDown, 
+      label: "Expenses", 
+      onClick: () => navigate("/agency/finance/expenses") 
+    },
   ];
 
   return (

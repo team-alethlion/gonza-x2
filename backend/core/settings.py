@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'messaging',
     'tasks',
     'activities',
+    'appointments',
     'django_filters',
 ]
 

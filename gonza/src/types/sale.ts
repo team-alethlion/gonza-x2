@@ -32,7 +32,7 @@ export const newSaleSchema = z.object({
   taxAmount: z.number(),
   grandTotal: z.number(),
   totalItems: z.number(),
-  paymentStatus: z.enum(["Paid", "NOT PAID", "Installment Sale"]).default("Paid"),
+  paymentStatus: z.enum(["Paid", "NOT PAID", "Installment Sale", "QUOTE"]).default("Paid"),
   linkToCash: z.boolean().default(true),
   cashAccountId: z.string().optional(),
   saleSource: z.string().optional(),

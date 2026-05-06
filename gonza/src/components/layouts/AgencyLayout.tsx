@@ -8,6 +8,7 @@ import { useProductStore } from "../../store/useProductStore";
 import { useCustomerStore } from "../../store/useCustomerStore";
 import { useSalesStore } from "../../store/useSalesStore";
 import { useFinanceStore } from "../../store/useFinanceStore";
+import { useAppointmentStore } from "../../store/useAppointmentStore";
 
 const AgencyLayout = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -17,6 +18,7 @@ const AgencyLayout = () => {
   const { sync: syncCustomers } = useCustomerStore();
   const { sync: syncSales } = useSalesStore();
   const { sync: syncFinance } = useFinanceStore();
+  const { sync: syncAppointments } = useAppointmentStore();
 
   useEffect(() => {
     if (isAuthenticated && branchId) {
@@ -26,6 +28,7 @@ const AgencyLayout = () => {
         syncCustomers(false, branchId),
         syncSales(false, branchId),
         syncFinance(false, branchId),
+        syncAppointments(false, branchId),
       ]).catch((err) => {
         console.error("❌ [AgencyLayout] Global Sync Failed:", err);
       });
@@ -37,6 +40,7 @@ const AgencyLayout = () => {
     syncCustomers,
     syncSales,
     syncFinance,
+    syncAppointments,
   ]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);

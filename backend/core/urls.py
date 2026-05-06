@@ -49,4 +49,5 @@ urlpatterns = [
     path('api/messaging/', include('messaging.urls')),
     path('api/tasks/', include('tasks.urls')),
     path('api/activities/', include('activities.urls')),
+    path('api/appointments/', include('appointments.urls')),
 ]

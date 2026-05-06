@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import AddCustomer from "../../../components/sales/AddCustomer";
 import ProductService from "../../../components/sales/ProductService";
 import Payment from "../../../components/sales/Payment";
@@ -14,6 +14,8 @@ import { apiFetch } from "../../../utils/api";
 import { syncQueue } from "../../../services/syncQueue";
 import { getApiUrl } from "../../../config";
 
+import { useNewSaleLogic } from "../../../hooks/sales/useNewSale";
+
 const NewSale = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,48 +25,12 @@ const NewSale = () => {
   );
 
   const { user } = useAuthStore();
+  const { createType, getDefaultValues, handlePostSubmissionSync } =
+    useNewSaleLogic();
 
   const methods = useForm<NewSaleFormData>({
     resolver: zodResolver(newSaleSchema),
-    defaultValues: {
-      date: new Date(),
-      customers: [
-        {
-          name: "",
-          address1: "",
-          contact: "",
-          email: "",
-          category: "",
-        },
-      ],
-      items: [
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          message: "",
-          productAppend: "",
-          quantity: 1,
-          pricePerUnit: 0,
-          discountType: "%",
-          discountValue: 0,
-          costPerUnit: 0,
-          itemTotalCost: 0,
-        },
-      ],
-      taxRate: 18,
-      subtotal: 0,
-      taxAmount: 0,
-      grandTotal: 0,
-      totalItems: 0,
-      paymentStatus: "Paid",
-      linkToCash: true,
-      cashAccountId: "",
-      shippingCost: 0,
-      receiptOptions: {
-        showReceipt: true,
-        sendEmail: false,
-        includePayment: true,
-      },
-    },
+    defaultValues: useMemo(() => getDefaultValues(user), [user, createType]),
     mode: "onChange",
   });
 
@@ -133,6 +99,11 @@ const NewSale = () => {
       }
 
       reset();
+
+      // 🔄 Immediate Sync: Push data to Dexie and background sync
+      const saleResponse = await res.json();
+      await handlePostSubmissionSync(saleResponse, user.branch?.id);
+
       alert("Sale created successfully!");
     } catch (err: any) {
       const isNetworkError =

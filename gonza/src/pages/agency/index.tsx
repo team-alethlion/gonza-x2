@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, Button, Badge, Select, Spinner } from "flowbite-react";
 import {
   HiOutlineCurrencyDollar,
@@ -19,6 +20,7 @@ import { useFinanceStore } from "../../store/useFinanceStore";
 
 const AgencyHome = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState("today");
 
   const { summary: summaryData, loading } = useDashboard(
@@ -52,18 +54,34 @@ const AgencyHome = () => {
       <div>
         <div className="flex items-center justify-between p-4">
           <span className="text-gray-900 dark:text-white ">{userName}</span>
-          <button className="flex items-center justify-center text-white bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md border border-white/20 hover:bg-brand-primary rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 shadow-sm">
+          <button
+            onClick={() => navigate("/agency/sales/new-sale?create=new")}
+            className="flex items-center justify-center text-white bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md border border-white/20 hover:bg-brand-primary rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 shadow-sm">
             <HiPlus className="mr-1 h-4 w-4" />
             new sale
           </button>
         </div>
         <div className="flex items-center justify-start gap-4 p-4 overflow-x-auto bg-white/20 dark:bg-white/[0.02] backdrop-blur-sm border-y border-gray-100/50 dark:border-white/[0.05]">
-          <button className={actionButtonClasses}>Create Receipt</button>
-          <button className={actionButtonClasses}>Create Invoice</button>
-          <button className={actionButtonClasses}>
+          <button
+            onClick={() => navigate("/agency/sales/new-sale?create=receipt")}
+            className={actionButtonClasses}>
+            Create Receipt
+          </button>
+          <button
+            onClick={() => navigate("/agency/sales/new-sale?create=invoice")}
+            className={actionButtonClasses}>
+            Create Invoice
+          </button>
+          <button
+            onClick={() => navigate("/agency/sales/new-sale?create=installment")}
+            className={actionButtonClasses}>
             Create Installment Sale
           </button>
-          <button className={actionButtonClasses}>Create Quatation</button>
+          <button
+            onClick={() => navigate("/agency/sales/new-sale?create=quotation")}
+            className={actionButtonClasses}>
+            Create Quatation
+          </button>
         </div>
       </div>
 
