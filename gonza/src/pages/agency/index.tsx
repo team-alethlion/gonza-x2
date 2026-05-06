@@ -269,7 +269,9 @@ const AgencyHome = () => {
         </div>
 
         {/* Recent Sales */}
-        <RecentSales />
+        <div className="mt-4">
+          <RecentSales />
+        </div>
       </div>
     </div>
   );
