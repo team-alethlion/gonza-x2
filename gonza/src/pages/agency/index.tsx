@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Button, Badge, Select, Spinner } from "flowbite-react";
 import {
   HiOutlineCurrencyDollar,
@@ -11,80 +11,37 @@ import {
   HiPlus,
 } from "react-icons/hi";
 import { useAuthStore } from "../../store/useAuthStore";
-import { CONFIG } from "../../config";
 import { NumberFormatter } from "../../utils/formatters";
 import AnalysisGraph from "../../components/dashboard/AnalysisGraph";
 import UpcommingCalendar from "../../components/dashboard/UpcommingCalendar";
-import { apiFetch } from "../../utils/api";
+import { useDashboard } from "../../store/useDashboardStore";
+import { useFinanceStore } from "../../store/useFinanceStore";
 
 const AgencyHome = () => {
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(true);
-  const [summaryData, setSummaryData] = useState<any>(null);
   const [filter, setFilter] = useState("today");
 
-  const dateRange = useMemo(() => {
-    const now = new Date();
-    let start = new Date();
-    const end = new Date();
-
-    if (filter === "today") {
-      start.setHours(0, 0, 0, 0);
-    } else if (filter === "this_week") {
-      const day = now.getDay();
-      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-      start = new Date(now.setDate(diff));
-      start.setHours(0, 0, 0, 0);
-    } else if (filter === "this_month") {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (filter === "this_year") {
-      start = new Date(now.getFullYear(), 0, 1);
-    }
-
-    return {
-      startDate: start.toISOString().split("T")[0],
-      endDate: end.toISOString().split("T")[0],
-    };
-  }, [filter]);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      if (!user?.branch?.id) return;
-
-      setLoading(true);
-      try {
-        const endpoint = `${CONFIG.API.CORE.BASE}analytics/summary/`;
-        const params = new URLSearchParams({
-          branchId: user.branch.id,
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
-
-        const res = await apiFetch(`${endpoint}?${params}`);
-
-        if (res.ok) {
-          const data = await res.json();
-          setSummaryData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard summary:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSummary();
-  }, [user?.branch?.id, dateRange]);
+  const { summary: summaryData, loading } = useDashboard(user?.branch?.id);
 
   const userName = user
     ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
     : "Agent";
+
+  const { sync: syncFinance } = useFinanceStore();
+  const branchId = user?.branch?.id;
 
   // Shared card classes for continuity
   const cardClasses =
     "bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl";
   const actionButtonClasses =
     "border border-gray-100/50 dark:border-white/[0.05] backdrop-blur-sm p-2 w-3xl bg-white/40 dark:bg-white/[0.03] cursor-pointer text-gray-900 dark:text-white rounded-lg hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200";
+
+  // Add useEffect to sync finance data
+  useEffect(() => {
+    if (branchId) {
+      syncFinance(false, branchId);
+    }
+  }, [branchId, syncFinance]);
 
   return (
     <div>
@@ -207,9 +164,7 @@ const AgencyHome = () => {
                 </span>
               </div>
               <div className="text-xl font-bold ">
-                {NumberFormatter.formatCurrency(
-                  summaryData?.inventoryStats?.totalStockValue,
-                )}
+                {NumberFormatter.formatCurrency(summaryData?.inventoryValue)}
               </div>
               <div>
                 <span className="text-xs text-gray-500">

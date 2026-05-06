@@ -29,19 +29,19 @@ class CustomerCategoryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # 🛡️ SECURITY: Strict Multi-tenant isolation
-        qs = super().get_queryset().select_related('branch', 'user', 'agency')
-        
         user = self.request.user
-        if user.is_authenticated:
-            agency_id = getattr(user, 'agency_id', None)
-            if agency_id:
-                qs = qs.filter(agency_id=agency_id)
+        agency_id = getattr(user, 'agency_id', None)
         
+        if user.is_superuser:
+            qs = super().get_queryset()
+        else:
+            qs = super().get_queryset().filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
             
-        return qs.order_by('name')
+        return qs
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -58,13 +58,13 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # 🛡️ SECURITY: Strict Multi-tenant isolation
-        qs = super().get_queryset().select_related('branch', 'admin', 'category')
-        
         user = self.request.user
-        if user.is_authenticated:
-            agency_id = getattr(user, 'agency_id', None)
-            if agency_id:
-                qs = qs.filter(agency_id=agency_id)
+        agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('branch', 'admin', 'category')
+        else:
+            qs = super().get_queryset().select_related('branch', 'admin', 'category').filter(agency_id=agency_id)
         
         branch_id = self.request.query_params.get('branchId')
         if branch_id:

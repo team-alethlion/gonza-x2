@@ -5,6 +5,7 @@ from .models import Product
 class ProductFilter(filters.FilterSet):
     stock_status = filters.CharFilter(method='filter_stock_status')
     category_name = filters.CharFilter(field_name='category__name', lookup_expr='icontains')
+    updated_at__gte = filters.IsoDateTimeFilter(field_name='updated_at', lookup_expr='gte')
     
     class Meta:
         model = Product

@@ -4,6 +4,7 @@ from .models import Sale
 class SaleFilter(filters.FilterSet):
     date_from = filters.DateTimeFilter(field_name='date', lookup_expr='gte')
     date_to = filters.DateTimeFilter(field_name='date', lookup_expr='lte')
+    updated_at__gte = filters.IsoDateTimeFilter(field_name='updated_at', lookup_expr='gte')
     status = filters.CharFilter(field_name='status')
     customer_id = filters.CharFilter(field_name='customer_id')
     search = filters.CharFilter(method='filter_search')

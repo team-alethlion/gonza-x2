@@ -150,10 +150,14 @@ class SaleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # 🛡️ SECURITY: Strict Multi-tenant isolation
-        # 1. Filter by current user's Agency
         user = self.request.user
         agency_id = getattr(user, 'agency_id', None)
-        qs = super().get_queryset().filter(is_deleted=False, agency_id=agency_id)
+        
+        # Superusers see everything, others are scoped by agency
+        if user.is_superuser:
+            qs = super().get_queryset().filter(is_deleted=False)
+        else:
+            qs = super().get_queryset().filter(is_deleted=False, agency_id=agency_id)
         
         # 2. Filter by specific branch if provided
         branch_id = self.request.query_params.get('branchId')

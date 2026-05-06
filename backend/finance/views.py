@@ -37,22 +37,17 @@ class CashAccountViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # 🛡️ SECURITY: Multi-tenant isolation with legacy support
-        qs = super().get_queryset().select_related('branch', 'user')
-        
+        # 🛡️ SECURITY: Multi-tenant isolation
         user = self.request.user
         agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('branch', 'user')
+        else:
+            qs = super().get_queryset().select_related('branch', 'user').filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
-
-        if agency_id:
-            if branch_id:
-                # Show if (matches agency OR is orphan) AND matches branch
-                qs = qs.filter(Q(agency_id=agency_id) | Q(agency_id__isnull=True), branch_id=branch_id)
-            else:
-                # Global view: only show agency data
-                qs = qs.filter(agency_id=agency_id)
-        elif branch_id:
-            # Fallback for users without agency_id (if any)
+        if branch_id:
             qs = qs.filter(branch_id=branch_id)
             
         return qs.order_by('-is_default', 'name')
@@ -240,22 +235,17 @@ class ExpenseCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # 🛡️ SECURITY: Multi-tenant isolation with legacy support
-        qs = super().get_queryset().select_related('branch', 'user')
-        
+        # 🛡️ SECURITY: Multi-tenant isolation
         user = self.request.user
         agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('branch', 'user')
+        else:
+            qs = super().get_queryset().select_related('branch', 'user').filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
-
-        if agency_id:
-            if branch_id:
-                # Show if (matches agency OR is orphan) AND matches branch
-                qs = qs.filter(Q(agency_id=agency_id) | Q(agency_id__isnull=True), branch_id=branch_id)
-            else:
-                # Global view: only show agency data
-                qs = qs.filter(agency_id=agency_id)
-        elif branch_id:
-            # Fallback for users without agency_id (if any)
+        if branch_id:
             qs = qs.filter(branch_id=branch_id)
             
         return qs.order_by('-is_default', 'name')
@@ -285,22 +275,17 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     search_fields = ['description']
 
     def get_queryset(self):
-        # 🛡️ SECURITY: Multi-tenant isolation with legacy support
-        qs = super().get_queryset().select_related('branch', 'user')
-        
+        # 🛡️ SECURITY: Multi-tenant isolation
         user = self.request.user
         agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('branch', 'user')
+        else:
+            qs = super().get_queryset().select_related('branch', 'user').filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
-
-        if agency_id:
-            if branch_id:
-                # Show if (matches agency OR is orphan) AND matches branch
-                qs = qs.filter(Q(agency_id=agency_id) | Q(agency_id__isnull=True), branch_id=branch_id)
-            else:
-                # Global view: only show agency data
-                qs = qs.filter(agency_id=agency_id)
-        elif branch_id:
-            # Fallback for users without agency_id (if any)
+        if branch_id:
             qs = qs.filter(branch_id=branch_id)
             
         return qs.order_by('-date', '-created_at')
@@ -771,22 +756,17 @@ class CarriageInwardViewSet(viewsets.ModelViewSet):
             instance.save(update_fields=['cash_transaction'])
 
     def get_queryset(self):
-        # 🛡️ SECURITY: Multi-tenant isolation with legacy support
-        qs = super().get_queryset().select_related('branch', 'user')
-        
+        # 🛡️ SECURITY: Multi-tenant isolation
         user = self.request.user
         agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('branch', 'user')
+        else:
+            qs = super().get_queryset().select_related('branch', 'user').filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
-
-        if agency_id:
-            if branch_id:
-                # Show if (matches agency OR is orphan) AND matches branch
-                qs = qs.filter(Q(agency_id=agency_id) | Q(agency_id__isnull=True), branch_id=branch_id)
-            else:
-                # Global view: only show agency data
-                qs = qs.filter(agency_id=agency_id)
-        elif branch_id:
-            # Fallback for users without agency_id (if any)
+        if branch_id:
             qs = qs.filter(branch_id=branch_id)
             
         return qs.order_by('-date', '-created_at')

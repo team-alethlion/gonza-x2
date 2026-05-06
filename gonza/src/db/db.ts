@@ -51,6 +51,37 @@ export interface Customer {
   updated_at?: string;
 }
 
+// ========== FINANCE INTERFACES ==========
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  is_default?: boolean;
+  agency?: string;
+  branch?: string;
+  user?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+  payment_method?: string;
+  person_in_charge?: string;
+  reference?: string;
+  agency?: string;
+  branch?: string;
+  user?: string;
+  receipt_image?: string;
+  cash_account?: string;
+  cash_transaction?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // ========== SALES MODELS (already defined but ensure completeness) ==========
 export interface Sale {
   id: string;
@@ -185,6 +216,9 @@ export const db = new Dexie("GonzaDB") as Dexie & {
   salesReturnItems: EntityTable<SalesReturnItem, "id">;
 
   pendingSales: EntityTable<PendingSale, "id">;
+  // Inside the db type declaration (after pendingSales)
+  expenseCategories: EntityTable<ExpenseCategory, "id">;
+  expenses: EntityTable<Expense, "id">;
 };
 
 // Add after the SalesReturnItem interface (before the db declaration)
@@ -216,6 +250,8 @@ db.version(4)
     salesReturns: "id, sale, status, date, branch",
     salesReturnItems: "id, sales_return, sale_item",
     pendingSales: "id, status, createdAt, updatedAt",
+    expenseCategories: "id, name, branch",
+    expenses: "id, branch, category, date, updated_at",
   })
   .upgrade(async (tx) => {
     console.log("🔄 Running Dexie upgrade from version <4 to 4");

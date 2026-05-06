@@ -4,6 +4,7 @@ from .models import Customer
 class CustomerFilter(filters.FilterSet):
     search = filters.CharFilter(method='filter_search')
     category_name = filters.CharFilter(field_name='category__name', lookup_expr='icontains')
+    updated_at__gte = filters.IsoDateTimeFilter(field_name='updated_at', lookup_expr='gte')
 
     class Meta:
         model = Customer

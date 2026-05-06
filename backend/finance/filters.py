@@ -6,6 +6,7 @@ class ExpenseFilter(filters.FilterSet):
     category_name = filters.CharFilter(field_name='category', lookup_expr='icontains')
     date_from = filters.DateTimeFilter(field_name='date', lookup_expr='gte')
     date_to = filters.DateTimeFilter(field_name='date', lookup_expr='lte')
+    updated_at__gte = filters.IsoDateTimeFilter(field_name='updated_at', lookup_expr='gte')
     search = filters.CharFilter(method='filter_search')
 
     class Meta:
@@ -23,6 +24,7 @@ class ExpenseFilter(filters.FilterSet):
 class CashTransactionFilter(filters.FilterSet):
     date_from = filters.DateTimeFilter(field_name='date', lookup_expr='gte')
     date_to = filters.DateTimeFilter(field_name='date', lookup_expr='lte')
+    updated_at__gte = filters.IsoDateTimeFilter(field_name='updated_at', lookup_expr='gte')
     transaction_type = filters.CharFilter(field_name='transaction_type')
     search = filters.CharFilter(method='filter_search')
     

@@ -4,92 +4,135 @@ import Chart from "react-apexcharts";
 import { Card, Button, Spinner, Select } from "flowbite-react";
 import { HiOutlineChartBar } from "react-icons/hi";
 import { useAuthStore } from "../../store/useAuthStore";
-import { CONFIG } from "../../config";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, type Sale, type Expense } from "../../db/db";
 import { NumberFormatter } from "../../utils/formatters";
-import { apiFetch } from "../../utils/api";
+
+type Timeframe = "daily" | "weekly" | "monthly";
 
 const AnalysisGraph = () => {
   const { user } = useAuthStore();
-  const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly">(
-    "monthly",
-  );
+  const [timeframe, setTimeframe] = useState<Timeframe>("monthly");
   const [selectedYear, setSelectedYear] = useState<string>(
     new Date().getFullYear().toString(),
   );
   const [availableYears, setAvailableYears] = useState<number[]>([]);
-  const [chartData, setChartData] = useState<{
-    dates: string[];
-    sales: number[];
-    expenses: number[];
-  }>({
-    dates: [],
-    sales: [],
-    expenses: [],
-  });
 
-  // Fetch available years
+  // Fetch available years from existing sales in Dexie
   useEffect(() => {
     const fetchYears = async () => {
-      if (!user?.branch?.id) return;
       try {
-        const endpoint = `${CONFIG.API.SALES.BASE}performance_years/?branchId=${user.branch.id}`;
-        const res = await apiFetch(endpoint);
-        if (res.ok) {
-          const years = await res.json();
+        let salesQuery = db.sales.where("id").notEqual("");
+        if (user?.branch?.id) {
+          salesQuery = db.sales.where("branch").equals(user.branch.id);
+        }
+        const sales = await salesQuery.toArray();
+        const years = [
+          ...new Set(sales.map((s) => new Date(s.date).getFullYear())),
+        ].sort((a: number, b: number) => b - a);
+        if (years.length === 0) {
+          setAvailableYears([new Date().getFullYear()]);
+        } else {
           setAvailableYears(years);
         }
       } catch (error) {
-        console.error("Failed to fetch available years:", error);
+        console.error("Failed to get years from Dexie:", error);
+        setAvailableYears([new Date().getFullYear()]);
       }
     };
     fetchYears();
   }, [user?.branch?.id]);
 
-  // Fetch chart data
-  useEffect(() => {
-    const fetchChartData = async () => {
-      if (!user?.branch?.id) return;
+  // Compute chart data from Dexie sales and expenses
+  const chartData = useLiveQuery(async () => {
+    // Fetch all sales for the branch
+    let salesQuery = db.sales.where("id").notEqual("");
+    if (user?.branch?.id) {
+      salesQuery = db.sales.where("branch").equals(user.branch.id);
+    }
+    const allSales = await salesQuery.toArray();
 
-      setLoading(true);
-      try {
-        const endpoint = `${CONFIG.API.SALES.BASE}performance_chart/`;
-        const params = new URLSearchParams({
-          branchId: user.branch.id,
-          timeframe: timeframe,
-          year: selectedYear,
-        });
+    // Fetch all expenses for the branch
+    let expensesQuery = db.expenses.where("id").notEqual("");
+    if (user?.branch?.id) {
+      expensesQuery = db.expenses.where("branch").equals(user.branch.id);
+    }
+    const allExpenses = await expensesQuery.toArray();
 
-        const res = await apiFetch(`${endpoint}?${params}`);
+    // Filter by year
+    const filteredSales = allSales.filter((sale) => {
+      const saleYear = new Date(sale.date).getFullYear();
+      return saleYear.toString() === selectedYear;
+    });
+    const filteredExpenses = allExpenses.filter((expense) => {
+      const expenseYear = new Date(expense.date).getFullYear();
+      return expenseYear.toString() === selectedYear;
+    });
 
-        if (res.ok) {
-          const data = await res.json();
-          const dates = data.map((item: any) => {
-            const d = new Date(item.date);
-            if (timeframe === "monthly") {
-              return d.toLocaleDateString("en-US", {
-                month: "short",
-                year: "2-digit",
-              });
-            }
-            return d.toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-            });
-          });
-          const sales = data.map((item: any) => item.sales);
-          const expenses = data.map((item: any) => item.expenses);
-          setChartData({ dates, sales, expenses });
-        }
-      } catch (error) {
-        console.error("Failed to fetch performance chart:", error);
-      } finally {
-        setLoading(false);
+    // Group by date based on timeframe
+    const salesGroups: Record<string, number> = {};
+    const expensesGroups: Record<string, number> = {};
+
+    const addToGroup = (
+      groups: Record<string, number>,
+      dateObj: Date,
+      amount: number,
+    ) => {
+      let key: string;
+      if (timeframe === "daily") {
+        key = dateObj.toISOString().split("T")[0];
+      } else if (timeframe === "weekly") {
+        const startOfYear = new Date(dateObj.getFullYear(), 0, 1);
+        const days = Math.floor(
+          (dateObj.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000),
+        );
+        const weekNumber = Math.ceil((days + 1) / 7);
+        key = `${dateObj.getFullYear()}-W${weekNumber}`;
+      } else {
+        key = `${dateObj.getFullYear()}-${dateObj.getMonth() + 1}`;
       }
+      groups[key] = (groups[key] || 0) + amount;
     };
 
-    fetchChartData();
+    for (const sale of filteredSales) {
+      addToGroup(salesGroups, new Date(sale.date), sale.total_amount);
+    }
+    for (const expense of filteredExpenses) {
+      addToGroup(expensesGroups, new Date(expense.date), expense.amount);
+    }
+
+    // Get all unique keys from both groups
+    const allKeys = new Set([
+      ...Object.keys(salesGroups),
+      ...Object.keys(expensesGroups),
+    ]);
+    const sortedKeys = Array.from(allKeys).sort();
+
+    const formattedDates = sortedKeys.map((key) => {
+      if (timeframe === "daily") {
+        return new Date(key).toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "short",
+        });
+      } else if (timeframe === "weekly") {
+        return `Week ${key.split("-W")[1]}`;
+      } else {
+        const [year, month] = key.split("-");
+        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          year: "2-digit",
+        });
+      }
+    });
+
+    const salesData = sortedKeys.map((k) => salesGroups[k] || 0);
+    const expensesData = sortedKeys.map((k) => expensesGroups[k] || 0);
+
+    return { dates: formattedDates, sales: salesData, expenses: expensesData };
   }, [user?.branch?.id, timeframe, selectedYear]);
+
+  const isLoading = chartData === undefined;
 
   const options: any = {
     chart: {
@@ -99,7 +142,7 @@ const AnalysisGraph = () => {
       fontFamily: "Inter, sans-serif",
       background: "transparent",
     },
-    colors: ["#252861", "#f05a2b"], // Space Indigo and Tiger Flame
+    colors: ["#252861", "#f05a2b"],
     fill: {
       type: "gradient",
       gradient: {
@@ -110,27 +153,18 @@ const AnalysisGraph = () => {
       },
     },
     dataLabels: { enabled: false },
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
+    stroke: { curve: "smooth", width: 3 },
     xaxis: {
-      categories: chartData.dates,
+      categories: chartData?.dates || [],
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "12px",
-        },
+        style: { colors: "#9ca3af", fontSize: "12px" },
       },
     },
     yaxis: {
       labels: {
-        style: {
-          colors: "#9ca3af",
-          fontSize: "12px",
-        },
+        style: { colors: "#9ca3af", fontSize: "12px" },
         formatter: (val: number) => NumberFormatter.minimize(val),
       },
     },
@@ -138,49 +172,30 @@ const AnalysisGraph = () => {
       show: true,
       borderColor: "#f3f4f6",
       strokeDashArray: 4,
-      padding: {
-        left: 20,
-        right: 20,
-      },
+      padding: { left: 20, right: 20 },
     },
     tooltip: {
       theme: "light",
-      x: { show: true },
-      y: {
-        formatter: (val: number) => NumberFormatter.formatCurrency(val),
-      },
+      y: { formatter: (val: number) => NumberFormatter.formatCurrency(val) },
     },
     legend: {
       position: "top",
       horizontalAlign: "right",
       fontSize: "12px",
       fontWeight: 600,
-      labels: {
-        colors: "#9ca3af",
-      },
-    },
-    theme: {
-      mode: "light",
+      labels: { colors: "#9ca3af" },
     },
   };
 
-  // Adjust for dark mode continuity
   if (document.documentElement.classList.contains("dark")) {
-    options.grid.borderColor = "rgba(255, 255, 255, 0.05)";
+    options.grid.borderColor = "rgba(255,255,255,0.05)";
     options.tooltip.theme = "dark";
-    options.theme.mode = "dark";
-    options.colors = ["#9b87f5", "#f05a2b"]; // Soft Periwinkle and Tiger Flame
+    options.colors = ["#9b87f5", "#f05a2b"];
   }
 
   const series = [
-    {
-      name: "Sales",
-      data: chartData.sales,
-    },
-    {
-      name: "Expenses",
-      data: chartData.expenses,
-    },
+    { name: "Sales", data: chartData?.sales || [] },
+    { name: "Expenses", data: chartData?.expenses || [] },
   ];
 
   return (
@@ -201,18 +216,9 @@ const AnalysisGraph = () => {
         </div>
         <div className="w-32">
           <Select
-            id="years"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            required
-            className="cursor-pointer"
-            theme={{
-              field: {
-                select: {
-                  base: "block w-full border disabled:cursor-not-allowed disabled:opacity-50 !py-1.5 !px-3 text-xs rounded-xl bg-white/50 dark:bg-white/[0.05] backdrop-blur-sm border-gray-100/50 dark:border-white/[0.1]",
-                },
-              },
-            }}>
+            className="cursor-pointer">
             {availableYears.map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -222,47 +228,28 @@ const AnalysisGraph = () => {
         </div>
       </div>
       <div className="flex items-center w-fit gap-1 bg-gray-100/30 dark:bg-white/[0.02] backdrop-blur-md p-1 rounded-xl border border-gray-100/20 dark:border-white/[0.05]">
-        <Button
-          size="xs"
-          color="none"
-          onClick={() => setTimeframe("daily")}
-          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
-            timeframe === "daily"
-              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
-              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
-          }`}>
-          Daily
-        </Button>
-        <Button
-          size="xs"
-          color="none"
-          onClick={() => setTimeframe("weekly")}
-          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
-            timeframe === "weekly"
-              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
-              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
-          }`}>
-          Weekly
-        </Button>
-        <Button
-          size="xs"
-          color="none"
-          onClick={() => setTimeframe("monthly")}
-          className={`text-[10px] font-bold  tracking-wider transition-all duration-200 rounded-lg ${
-            timeframe === "monthly"
-              ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
-              : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
-          }`}>
-          Monthly
-        </Button>
+        {(["daily", "weekly", "monthly"] as Timeframe[]).map((tf) => (
+          <Button
+            key={tf}
+            size="xs"
+            color="none"
+            onClick={() => setTimeframe(tf)}
+            className={`text-[10px] font-bold tracking-wider transition-all duration-200 rounded-lg ${
+              timeframe === tf
+                ? "bg-brand-primary/80 dark:bg-brand-primary/40 text-white backdrop-blur-md shadow-sm border border-white/20"
+                : "bg-transparent border-none text-gray-500 hover:bg-white/40 dark:hover:bg-white/10 backdrop-blur-sm"
+            }`}>
+            {tf.charAt(0).toUpperCase() + tf.slice(1)}
+          </Button>
+        ))}
       </div>
 
       <div className="relative h-80 w-full mt-4">
-        {loading ? (
+        {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-white/20 dark:bg-black/10 backdrop-blur-sm z-10 rounded-xl">
             <Spinner size="lg" color="info" />
           </div>
-        ) : chartData.dates.length === 0 ? (
+        ) : !chartData?.dates.length ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
             <HiOutlineChartBar className="h-12 w-12 mb-2 opacity-20" />
             <p className="text-sm font-medium">

@@ -82,8 +82,14 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # 🛡️ SECURITY: Strict Multi-tenant isolation
-        agency_id = getattr(self.request.user, 'agency_id', None)
-        qs = super().get_queryset().select_related('category', 'supplier', 'branch').filter(agency_id=agency_id)
+        user = self.request.user
+        agency_id = getattr(user, 'agency_id', None)
+        
+        if user.is_superuser:
+            qs = super().get_queryset().select_related('category', 'supplier', 'branch')
+        else:
+            qs = super().get_queryset().select_related('category', 'supplier', 'branch').filter(agency_id=agency_id)
+            
         branch_id = self.request.query_params.get('branchId')
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
