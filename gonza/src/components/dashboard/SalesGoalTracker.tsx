@@ -26,7 +26,6 @@ const SalesGoalTracker = () => {
     const now = new Date();
     if (p === "DAILY") return `DAILY-${now.toISOString().split("T")[0]}`;
     if (p === "WEEKLY") {
-       // Simple week identifier (Year-WeekNumber)
        const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
        const pastDaysOfYear = (now.getTime() - firstDayOfYear.getTime()) / 86400000;
        const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
@@ -102,92 +101,49 @@ const SalesGoalTracker = () => {
     }
   };
 
-  const periodLabel = period.toLowerCase();
+  const periodLabel = period === "DAILY" ? "daily" : period === "WEEKLY" ? "weekly" : "monthly";
 
   return (
     <div className="p-6 rounded-sm bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl">
-      {/* sales, costs, expenses and profits (excluding quotes) */}
-      <div className="mb-4">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-          Sales Goal Tracker
-        </h2>
-        <p className="text-[.7rem] text-gray-500 capitalize tracking-widest font-medium">
-          Business: {user?.agency?.name || "Business Name"}
-        </p>
+      <div>
+        <h2 className="text-lg font-bold mb-4">Sales Goal Tracker</h2>
+        <p className="text-sm text-gray-500">Business: {user?.agency?.name || "Business Name"}</p>
       </div>
 
-      <div className="flex p-1 bg-gray-100/50 dark:bg-black/20 rounded-sm mb-6 border border-gray-200/50 dark:border-white/5">
-        {(["DAILY", "WEEKLY", "MONTHLY"] as const).map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`flex-1  text-[10px] font-black capitalize tracking-wider transition-all rounded-sm py-1.5 ${
-              period === p
-                ? "bg-white dark:bg-white/10 text-brand-primary dark:text-brand-accent shadow-sm"
-                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}>
-            {p.toLowerCase()}
-          </button>
-        ))}
+      <div className="flex gap-2 mb-4">
+        <Button onClick={() => setPeriod("DAILY")}>Daily</Button>
+        <Button onClick={() => setPeriod("WEEKLY")}>Weekly</Button>
+        <Button onClick={() => setPeriod("MONTHLY")}>Monthly</Button>
       </div>
 
-      <div className="flex flex-col gap-2 mb-6">
-        <div className="flex justify-between items-center py-2 border-b border-gray-100/50 dark:border-white/5">
-          <p className="text-xs  text-gray-500 capitalize tracking-widest">
-            {periodLabel} Goal
-          </p>
-          <p className="text-[.75rem]  text-gray-900 dark:text-white font-black">
-            ugx {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}
-          </p>
+      <div className="flex flex-col gap-4 mb-4">
+        <div className="flex justify-between mb-4">
+          <p>{periodLabel} Goal</p>
+          <p>ugx {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}</p>
         </div>
-        <div className="flex justify-between items-center py-2 border-b border-gray-100/50 dark:border-white/5">
-          <p className="text-xs text-gray-500 capitalize tracking-widest">
-            Current Sales
-          </p>
-          <p className="text-[.75rem]  text-brand-primary dark:text-brand-accent font-black">
-            ugx {NumberFormatter.formatCurrency(currentSales || 0)}
-          </p>
+        <div className="flex justify-between mb-4">
+          <p>Current Sales</p>
+          <p>ugx {NumberFormatter.formatCurrency(currentSales || 0)}</p>
         </div>
-        <div className="flex justify-between items-center py-2">
-          <p className="text-xs  text-gray-500 capitalize tracking-widest">
-            Progress
-          </p>
-          <p className="text-[.75rem]  text-emerald-500 font-black">{progress}%</p>
+        <div className="flex justify-between mb-4">
+          <p>Progress</p>
+          <p>{progress}%</p>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <TextInput
+      <div>
+        <TextInput 
           type="number"
-          placeholder="0.00"
           value={goalInput}
-          color="none"
           onChange={(e) => setGoalInput(e.target.value)}
-          className="flex-1"
-          theme={{
-            field: {
-              input: {
-                base: "block w-full border disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 !px-2.5 !py-1.5 !text-[.75rem] !rounded-sm backdrop-blur-sm bg-white/40 dark:bg-white/[0.05] border-gray-200/50 dark:border-white/[0.1] text-gray-900 dark:text-white focus:border-brand-primary focus:ring-brand-primary/20",
-              },
-            },
-          }}
+          placeholder="Set target amount"
         />
-        <Button
-          color="none"
-          size="sm"
-          disabled={isUpdating}
-          onClick={handleSetGoal}
-          className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark transition-all !px-4 capitalize tracking-widest text-[10px] font-bold">
+        <Button onClick={handleSetGoal} disabled={isUpdating} className="mt-2">
           {isUpdating ? <Spinner size="xs" /> : "Set Goal"}
         </Button>
       </div>
-
-      <HR className="my-6 border-gray-100/50 dark:border-white/5" />
-
-      <div className="text-[10px] text-gray-400 italic font-medium leading-relaxed">
-        Business Goal Tip: Setting realistic {periodLabel} targets ensures
-        steady business growth and team motivation.
-      </div>
+      <HR />
+      <div className="text-sm italic text-gray-400">Business Goal Tip: Setting realistic targets helps maintain steady growth.</div>
     </div>
   );
 };

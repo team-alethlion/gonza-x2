@@ -113,8 +113,6 @@ class SalesGoalViewSet(viewsets.ModelViewSet):
 
         return Response(SalesGoalSerializer(goal).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
-    def perform_create(self, serializer):
-
 class SaleCategoryViewSet(viewsets.ModelViewSet):
     queryset = SaleCategory.objects.all()
     serializer_class = SaleCategorySerializer
