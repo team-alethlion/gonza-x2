@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import html2pdf from "html2pdf.js";
 import {
   Modal,
@@ -9,6 +9,8 @@ import {
 } from "flowbite-react";
 import { type NewSaleFormData } from "../../types/sale";
 import { generateSaleReceiptMarkdown } from "../../templates/pdf/SaleReceiptTemplate";
+import { generateThermalReceiptMarkdown } from "../../templates/pdf/ThermalReceiptTemplate";
+import { HiDocumentText, HiTicket } from "react-icons/hi";
 
 interface SalePreviewProps {
   show: boolean;
@@ -18,22 +20,29 @@ interface SalePreviewProps {
 
 const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [receiptType, setReceiptType] = useState<"A4" | "Thermal">("A4");
 
   const handleDownloadPDF = () => {
     const element = receiptRef.current;
     if (!element) return;
 
+    const isThermal = receiptType === "Thermal";
+
     const opt = {
-      margin: [10, 10, 10, 10], // top, left, bottom, right
-      filename: `receipt-${new Date().getTime()}.pdf`,
+      margin: isThermal ? [0, 0, 0, 0] : [10, 10, 10, 10],
+      filename: `receipt-${receiptType.toLowerCase()}-${new Date().getTime()}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
         scale: 3,
         useCORS: true,
         letterRendering: true,
-        windowWidth: 1200, // Force a standard desktop capture width
+        windowWidth: isThermal ? 400 : 1200,
       },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      jsPDF: {
+        unit: "mm",
+        format: isThermal ? [80, 200] : "a4",
+        orientation: "portrait",
+      },
     };
 
     html2pdf().from(element).set(opt).save();
@@ -51,35 +60,64 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
         },
       }}>
       <ModalHeader className="border-b border-gray-100/50 dark:border-white/[0.05] p-4">
-        <span className="text-sm font-black  tracking-[0.2em] text-brand-primary dark:text-brand-accent">
-          Sale Receipt Preview
-        </span>
+        <div className="flex items-center justify-between w-full">
+          <span className="text-sm font-black  tracking-[0.2em] text-brand-primary dark:text-brand-accent">
+            Sale Receipt Preview
+          </span>
+        </div>
       </ModalHeader>
       <ModalBody className="p-0 bg-gray-100 dark:bg-gray-900 overflow-y-auto max-h-[80vh] flex flex-col items-center">
-        {/* 🚀 Scaling Wrapper: Shrinks the visual size for the UI without affecting export dimensions */}
+        {/* Type Switcher */}
+        <div className="flex gap-2 p-4 w-full justify-center bg-white/50 dark:bg-black/20 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-200/50 dark:border-white/5">
+          <Button
+            color="none"
+            size="xs"
+            onClick={() => setReceiptType("A4")}
+            className={`rounded-sm transition-all ${
+              receiptType === "A4"
+                ? "bg-brand-primary text-white shadow-md"
+                : "bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400"
+            }`}>
+            <HiDocumentText className="mr-1 h-4 w-4" /> A4 Standard
+          </Button>
+          <Button
+            color="none"
+            size="xs"
+            onClick={() => setReceiptType("Thermal")}
+            className={`rounded-sm transition-all ${
+              receiptType === "Thermal"
+                ? "bg-brand-primary text-white shadow-md"
+                : "bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400"
+            }`}>
+            <HiTicket className="mr-1 h-4 w-4" /> Thermal (80mm)
+          </Button>
+        </div>
+
+        {/* 🚀 Scaling Wrapper */}
         <div className="p-4 sm:p-8 w-full flex justify-center overflow-x-hidden">
           <div
-            className="bg-white shadow-2xl origin-top transition-transform duration-500 ease-in-out"
+            className="bg-white shadow-2xl origin-top transition-all duration-500 ease-in-out"
             style={{
-              width: "210mm",
-              height: "297mm",
-              // Dynamically scale based on viewport, or use a sensible fixed scale for 4xl modal
-              transform: "scale(0.65)",
-              // Calculate container height to avoid massive whitespace at the bottom after scaling
-              marginBottom: "-100mm",
+              width: receiptType === "A4" ? "210mm" : "80mm",
+              minHeight: receiptType === "A4" ? "297mm" : "150mm",
+              transform: receiptType === "A4" ? "scale(0.65)" : "scale(1.2)",
+              marginBottom: receiptType === "A4" ? "-100mm" : "20mm",
+              marginTop: receiptType === "Thermal" ? "20px" : "0",
             }}>
             <div
               ref={receiptRef}
               className="prose max-w-none bg-white text-black"
               style={{
-                padding: "20mm",
-                width: "210mm",
-                minHeight: "297mm",
-                // Ensure internal text and layout don't shift
+                padding: receiptType === "A4" ? "20mm" : "5mm",
+                width: receiptType === "A4" ? "210mm" : "80mm",
+                minHeight: receiptType === "A4" ? "297mm" : "150mm",
                 boxSizing: "border-box",
               }}
               dangerouslySetInnerHTML={{
-                __html: generateSaleReceiptMarkdown(data),
+                __html:
+                  receiptType === "A4"
+                    ? generateSaleReceiptMarkdown(data)
+                    : generateThermalReceiptMarkdown(data),
               }}
             />
           </div>
@@ -98,11 +136,14 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
           size="sm"
           onClick={handleDownloadPDF}
           className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark">
-          Download PDF
+          Download {receiptType} PDF
         </Button>
       </ModalFooter>
     </Modal>
   );
 };
+
+export default SalePreview;
+
 
 export default SalePreview;
