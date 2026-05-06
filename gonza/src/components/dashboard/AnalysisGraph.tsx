@@ -121,7 +121,7 @@ const AnalysisGraph = () => {
         const date = new Date(parseInt(year), parseInt(month) - 1, 1);
         return date.toLocaleDateString("en-US", {
           month: "short",
-          year: "2-digit",
+          year: "numeric",
         });
       }
     });

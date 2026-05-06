@@ -21,7 +21,10 @@ const AgencyHome = () => {
   const { user } = useAuthStore();
   const [filter, setFilter] = useState("today");
 
-  const { summary: summaryData, loading } = useDashboard(user?.branch?.id);
+  const { summary: summaryData, loading } = useDashboard(
+    user?.branch?.id,
+    filter,
+  );
 
   const userName = user
     ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
