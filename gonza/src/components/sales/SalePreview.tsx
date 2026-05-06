@@ -144,6 +144,3 @@ const SalePreview: React.FC<SalePreviewProps> = ({ show, onClose, data }) => {
 };
 
 export default SalePreview;
-
-
-export default SalePreview;

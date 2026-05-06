@@ -12,7 +12,7 @@ export const generateThermalReceiptMarkdown = (data: NewSaleFormData) => {
     date = new Date(),
   } = data;
 
-  const formattedDate = new Date(date).toLocaleDateString("en-GB", {
+  const formattedDate = new Date(date).toLocaleString("en-GB", {
     dateStyle: "medium",
     timeStyle: "short",
   });
