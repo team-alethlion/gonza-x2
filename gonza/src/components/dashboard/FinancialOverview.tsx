@@ -61,36 +61,30 @@ const FinancialOverview = () => {
     dataLabels: { enabled: false },
     colors: ["#3B82F6", "#F59E0B", "#EF4444", "#10B981"],
     xaxis: {
-      categories: data?.map((d) => d.name) || [
-        "Sales",
-        "Costs",
-        "Expenses",
-        "Profits",
-      ],
+      categories: data?.map((d) => d.name) || ["Sales", "Costs", "Expenses", "Profits"],
       axisBorder: { show: false },
       labels: {
         style: {
           colors: "#9CA3AF",
-          fontSize: "11px",
+          fontSize: "10px",
         },
       },
     },
     yaxis: {
       labels: {
-        style: { colors: "#9CA3AF", fontSize: "11px" },
+        style: { colors: "#9CA3AF", fontSize: "10px" },
         formatter: (val: number) => new Intl.NumberFormat().format(val),
       },
     },
     grid: {
       borderColor: "rgba(156, 163, 175, 0.1)",
-      strokeDashArray: 3,
+      strokeDashArray: 2,
     },
     tooltip: {
       theme: "dark",
-      style: { fontSize: "11px" },
+      style: { fontSize: "10px" },
       y: {
-        formatter: (val: number) =>
-          `UGX ${new Intl.NumberFormat().format(val)}`,
+        formatter: (val: number) => `UGX ${new Intl.NumberFormat().format(val)}`,
       },
     },
     legend: { show: false },

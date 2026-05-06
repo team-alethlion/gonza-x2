@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
-import { Button, TextInput, HR, Spinner } from "flowbite-react";
+import {
+  Button,
+  TextInput,
+  HR,
+  Spinner,
+} from "flowbite-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -21,6 +26,7 @@ const SalesGoalTracker = () => {
     const now = new Date();
     if (p === "DAILY") return `DAILY-${now.toISOString().split("T")[0]}`;
     if (p === "WEEKLY") {
+       // Simple week identifier (Year-WeekNumber)
        const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
        const pastDaysOfYear = (now.getTime() - firstDayOfYear.getTime()) / 86400000;
        const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
@@ -115,7 +121,7 @@ const SalesGoalTracker = () => {
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`flex-1  text-[10px] font-black capitalize tracking-wider transition-all rounded-sm ${
+            className={`flex-1  text-[10px] font-black capitalize tracking-wider transition-all rounded-sm py-1.5 ${
               period === p
                 ? "bg-white dark:bg-white/10 text-brand-primary dark:text-brand-accent shadow-sm"
                 : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
@@ -130,23 +136,23 @@ const SalesGoalTracker = () => {
           <p className="text-xs  text-gray-500 capitalize tracking-widest">
             {periodLabel} Goal
           </p>
-          <p className="text-[.7rem]  text-gray-900 dark:text-white ">
-            {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}
+          <p className="text-[.75rem]  text-gray-900 dark:text-white font-black">
+            ugx {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}
           </p>
         </div>
         <div className="flex justify-between items-center py-2 border-b border-gray-100/50 dark:border-white/5">
           <p className="text-xs text-gray-500 capitalize tracking-widest">
             Current Sales
           </p>
-          <p className="text-[.7rem]  text-brand-primary dark:text-brand-accent">
-            {NumberFormatter.formatCurrency(currentSales || 0)}
+          <p className="text-[.75rem]  text-brand-primary dark:text-brand-accent font-black">
+            ugx {NumberFormatter.formatCurrency(currentSales || 0)}
           </p>
         </div>
         <div className="flex justify-between items-center py-2">
           <p className="text-xs  text-gray-500 capitalize tracking-widest">
             Progress
           </p>
-          <p className="text-[.7rem]  text-emerald-500">{progress}%</p>
+          <p className="text-[.75rem]  text-emerald-500 font-black">{progress}%</p>
         </div>
       </div>
 
@@ -171,7 +177,7 @@ const SalesGoalTracker = () => {
           size="sm"
           disabled={isUpdating}
           onClick={handleSetGoal}
-          className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark transition-all !px-2.5   capitalize tracking-widest text-[10px]">
+          className="rounded-sm bg-brand-primary text-white hover:bg-brand-primary-dark transition-all !px-4 capitalize tracking-widest text-[10px] font-bold">
           {isUpdating ? <Spinner size="xs" /> : "Set Goal"}
         </Button>
       </div>
