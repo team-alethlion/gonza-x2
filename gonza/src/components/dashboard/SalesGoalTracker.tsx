@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
-import {
-  Button,
-  TextInput,
-  HR,
-  Spinner,
-} from "flowbite-react";
+import { Button, TextInput, HR, Spinner } from "flowbite-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -46,17 +41,17 @@ const SalesGoalTracker = () => {
   // Calculate current sales for the selected period
   const currentSales = useLiveQuery(async () => {
     const now = new Date();
-    let startDate = new Date();
+    let startDate = new Date(now);
 
     if (period === "DAILY") {
       startDate.setHours(0, 0, 0, 0);
     } else if (period === "WEEKLY") {
-      const day = now.getDay();
+      // Find Monday of the current week
+      const day = now.getDay(); // 0 (Sun) to 6 (Sat)
       const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-      startDate = new Date(now.setDate(diff));
-      startDate.setHours(0, 0, 0, 0);
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0, 0);
     } else if (period === "MONTHLY") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
     }
 
     const startTime = startDate.toISOString();
@@ -101,49 +96,92 @@ const SalesGoalTracker = () => {
     }
   };
 
-  const periodLabel = period === "DAILY" ? "daily" : period === "WEEKLY" ? "weekly" : "monthly";
+  const periodLabel = period.toLowerCase();
 
   return (
     <div className="p-6 rounded-sm bg-white/40 dark:bg-white/[0.03] backdrop-blur-md border border-gray-100/50 dark:border-white/[0.05] shadow-xl">
-      <div>
-        <h2 className="text-lg font-bold mb-4">Sales Goal Tracker</h2>
-        <p className="text-sm text-gray-500">Business: {user?.agency?.name || "Business Name"}</p>
+      {/* sales, costs, expenses and profits (excluding quotes) */}
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+          Sales Goal Tracker
+        </h2>
+        <p className="text-[.7rem] text-gray-500 capitalize tracking-widest font-medium">
+          Business: {user?.agency?.name || "Business Name"}
+        </p>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <Button onClick={() => setPeriod("DAILY")}>Daily</Button>
-        <Button onClick={() => setPeriod("WEEKLY")}>Weekly</Button>
-        <Button onClick={() => setPeriod("MONTHLY")}>Monthly</Button>
+      <div className="flex p-1 bg-gray-100/50 dark:bg-black/20 rounded-sm mb-6 border border-gray-200/50 dark:border-white/5">
+        {(["DAILY", "WEEKLY", "MONTHLY"] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`flex-1  text-[10px] font-black capitalize tracking-wider transition-all rounded-sm ${
+              period === p
+                ? "bg-white dark:bg-white/10 text-brand-primary dark:text-brand-accent shadow-sm"
+                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}>
+            {p.toLowerCase()}
+          </button>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-4 mb-4">
-        <div className="flex justify-between mb-4">
-          <p>{periodLabel} Goal</p>
-          <p>ugx {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}</p>
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex justify-between items-center py-2 border-b border-gray-100/50 dark:border-white/5">
+          <p className="text-xs  text-gray-500 capitalize tracking-widest">
+            {periodLabel} Goal
+          </p>
+          <p className="text-[.7rem]  text-gray-900 dark:text-white ">
+            {NumberFormatter.formatCurrency(currentGoal?.amount_target || 0)}
+          </p>
         </div>
-        <div className="flex justify-between mb-4">
-          <p>Current Sales</p>
-          <p>ugx {NumberFormatter.formatCurrency(currentSales || 0)}</p>
+        <div className="flex justify-between items-center py-2 border-b border-gray-100/50 dark:border-white/5">
+          <p className="text-xs text-gray-500 capitalize tracking-widest">
+            Current Sales
+          </p>
+          <p className="text-[.7rem]  text-brand-primary dark:text-brand-accent">
+            {NumberFormatter.formatCurrency(currentSales || 0)}
+          </p>
         </div>
-        <div className="flex justify-between mb-4">
-          <p>Progress</p>
-          <p>{progress}%</p>
+        <div className="flex justify-between items-center py-2">
+          <p className="text-xs  text-gray-500 capitalize tracking-widest">
+            Progress
+          </p>
+          <p className="text-[.7rem]  text-emerald-500">{progress}%</p>
         </div>
       </div>
 
-      <div>
-        <TextInput 
+      <div className="flex gap-2">
+        <TextInput
           type="number"
+          placeholder="0.00"
           value={goalInput}
+          color="none"
           onChange={(e) => setGoalInput(e.target.value)}
-          placeholder="Set target amount"
+          className="flex-1"
+          theme={{
+            field: {
+              input: {
+                base: "block w-full border disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 !px-2.5 !py-1.5 !text-[.75rem] !rounded-sm backdrop-blur-sm bg-white/40 dark:bg-white/[0.05] border-gray-200/50 dark:border-white/[0.1] text-gray-900 dark:text-white focus:border-brand-primary focus:ring-brand-primary/20",
+              },
+            },
+          }}
         />
-        <Button onClick={handleSetGoal} disabled={isUpdating} className="mt-2">
+        <Button
+          color="none"
+          size="sm"
+          disabled={isUpdating}
+          onClick={handleSetGoal}
+          className="rounded-sm bg-red-500 text-white hover:bg-brand-primary-dark transition-all !px-2.5   capitalize tracking-widest text-[10px]">
           {isUpdating ? <Spinner size="xs" /> : "Set Goal"}
         </Button>
       </div>
-      <HR />
-      <div className="text-sm italic text-gray-400">Business Goal Tip: Setting realistic targets helps maintain steady growth.</div>
+
+      <HR className="my-6 border-gray-100/50 dark:border-white/5" />
+
+      <div className="text-[10px] text-gray-400 italic font-medium leading-relaxed">
+        Business Goal Tip: Setting realistic {periodLabel} targets ensures
+        steady business growth and team motivation.
+      </div>
     </div>
   );
 };

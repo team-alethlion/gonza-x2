@@ -19,6 +19,7 @@ import { useDashboard } from "../../store/useDashboardStore";
 import { useFinanceStore } from "../../store/useFinanceStore";
 import FinancialOverview from "../../components/dashboard/FinancialOverview";
 import SalesGoalTracker from "../../components/dashboard/SalesGoalTracker";
+import { RecentSales } from "../../components/dashboard/RecentSales";
 
 const AgencyHome = () => {
   const { user } = useAuthStore();
@@ -266,6 +267,9 @@ const AgencyHome = () => {
             <SalesGoalTracker />
           </div>
         </div>
+
+        {/* Recent Sales */}
+        <RecentSales />
       </div>
     </div>
   );

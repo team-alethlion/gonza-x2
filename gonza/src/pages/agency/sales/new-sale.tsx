@@ -178,8 +178,16 @@ const NewSale = () => {
             className="rounded-sm bg-brand-primary/80 dark:bg-brand-primary/40 backdrop-blur-md border border-brand-primary/20 dark:border-brand-accent/20 text-white hover:bg-brand-primary transition-all shadow-md min-w-[150px]">
             {isSubmitting ? (
               <div className="flex items-center gap-2">
-                <Spinner size="xs" /> Creating...
+                <Spinner size="xs" /> {createType === "new" ? "Creating..." : `Processing ${createType}...`}
               </div>
+            ) : createType === "quotation" ? (
+              "Create Quotation"
+            ) : createType === "invoice" ? (
+              "Create Invoice"
+            ) : createType === "installment" ? (
+              "Create Installment"
+            ) : createType === "receipt" ? (
+              "Create Receipt"
             ) : (
               "Create Sale"
             )}

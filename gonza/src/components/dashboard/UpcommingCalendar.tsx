@@ -80,7 +80,13 @@ const UpcommingCalendar = () => {
       });
 
       if (res.ok) {
-        await sync(true, (user as any)?.branch?.id);
+        const newAppt = await res.json();
+        // 🛡️ Optimistic Update: Manually inject into Dexie for instant UI update
+        await db.appointments.put(newAppt);
+        
+        // Background sync to ensure consistency
+        sync(true, (user as any)?.branch?.id).catch(console.error);
+
         setShowModal(false);
         setFormData({
           title: "",
