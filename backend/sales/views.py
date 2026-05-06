@@ -269,8 +269,44 @@ class SaleViewSet(viewsets.ModelViewSet):
             receipt_number = f"{receipt_number}-{uuid.uuid4().hex[:4].upper()}"
 
         customer_id = data.get('customerId')
+        customer_name = data.get('customerName', 'Valued Customer')
+        customer_contact = data.get('customerContact')
+        customer_address = data.get('customerAddress')
+        
+        # 🛡️ LAZY CUSTOMER REGISTRATION
+        from customers.models import Customer
+        if not customer_id and customer_name != 'Valued Customer':
+            # Try to find existing customer in this agency by name and contact
+            existing = Customer.objects.filter(
+                agency_id=data.get('agencyId'),
+                name__iexact=customer_name,
+                phone=customer_contact
+            ).first()
+            
+            if existing:
+                customer_id = existing.id
+            else:
+                # Create a new customer record automatically
+                from core.utils import gen_cu_id
+                new_customer = Customer.objects.create(
+                    id=gen_cu_id(),
+                    name=customer_name,
+                    phone=customer_contact,
+                    address=customer_address,
+                    agency_id=data.get('agencyId'),
+                    branch_id=branch_id,
+                    admin_id=user_id,
+                    category_id=data.get('customerCategoryId') # Optional category from frontend
+                )
+                customer_id = new_customer.id
+
         if customer_id == "":
             customer_id = None
+
+        sale_date = data.get('date')
+        if sale_date:
+            from django.utils.dateparse import parse_datetime
+            sale_date = parse_datetime(sale_date) or sale_date
 
         sale = Sale.objects.create(
             id=f"sl_{uuid.uuid4().hex[:12]}",
@@ -278,6 +314,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             branch_id=branch_id,
             agency_id=data.get('agencyId'),
             receipt_number=receipt_number,
+            date=sale_date or timezone.now(),
             customer_name=data.get('customerName', 'Valued Customer'),
             customer_phone=data.get('customerContact'),
             customer_address=data.get('customerAddress'),

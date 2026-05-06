@@ -85,10 +85,12 @@ const NewSale = () => {
       agencyId: user.agency?.id,
       branchId: user.branch?.id,
       userId: user.id,
+      date: data.date.toISOString(),
       customerName: mainCustomer.name,
       customerContact: mainCustomer.contact,
       customerAddress: mainCustomer.address1,
       customerId: mainCustomer.id || null,
+      customerCategoryId: mainCustomer.category || null,
       items: data.items.map((item) => ({
         productId: item.productId || null,
         productName: item.productName || item.message,

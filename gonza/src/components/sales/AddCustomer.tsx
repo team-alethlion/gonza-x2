@@ -248,6 +248,7 @@ const AddCustomer: React.FC<AddCustomerProps> = ({ onShowPreview }) => {
                   )}
 
                   <div>
+                    <input type="hidden" {...register(`customers.${index}.id`)} />
                     <div className="mb-2 block">
                       <Label
                         htmlFor={`customers.${index}.name`}
